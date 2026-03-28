@@ -24,26 +24,33 @@ Built with Tauri (Rust + Web technologies).
    - Can move window to specific monitor coordinates
    - Fullscreen mode support
 
-3. **Drawing Tools**
-   - Brush with configurable size (1-100)
-   - Color picker
-   - Opacity control (1-100%)
-   - Pressure toggle
-   - Eraser mode (toggle with 'E' or shortcut key)
-   - Color picker tool (eyedropper)
+3. **Tool System**
+   - `ToolManager` class handles all tools and brushes
+   - 7 preset brushes: Round, Square, Soft, Pencil, Marker, Spray, Charcoal
+   - 5 tools: Eraser, Smudge/Blend, Blur, Dodge, Burn
+   - 10 blend modes for brushes
+   - Custom brush creator with preview
+   - Tool-specific UI (shows relevant controls per tool)
 
-4. **Canvas Management**
+4. **Advanced Tools**
+   - **Eraser**: Pixel, Brush, Block modes
+   - **Smudge**: Blends existing paint with adjustable strength
+   - **Blur**: Box blur effect
+   - **Dodge/Burn**: Lighten/darken like photography tools
+   - **Blend Modes**: Normal, Multiply, Screen, Overlay, Soft Light, Hard Light, Color Dodge, Color Burn, Difference, Exclusion
+
+5. **Canvas Management**
    - Dynamic resizing with content preservation
    - Undo/Redo system with stroke history
    - Save as PNG
 
-5. **Shortcut Keys (XPPen Tablet)**
+6. **Shortcut Keys (XPPen Tablet)**
    - `ShortcutManager` class handles key bindings
    - Modal UI for configuration (⌨️ Keys button)
    - Auto-detect mode for quick setup
    - Per-key action assignment
    - Supports combo keys (Ctrl+F1, etc.)
-   - Actions: brush sizes, colors, undo/redo, save, eraser, fullscreen
+   - Actions: brush types, sizes, colors, undo/redo, save, eraser, fullscreen
    - Settings persist to localStorage
 
 ## File Structure

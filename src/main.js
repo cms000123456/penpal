@@ -539,14 +539,23 @@ class ToolManager {
     });
     
     // Sliders
-    const sliders = ['brushHardness', 'brushSpacing', 'brushAngle', 'brushRoundness', 'minSize'];
-    sliders.forEach(id => {
-      const slider = document.getElementById(id);
-      const valueSpan = document.getElementById(id.replace('brush', '').replace('min', 'minSize') + 'Value');
-      slider.addEventListener('input', () => {
-        valueSpan.textContent = slider.value;
-        this.updateBrushPreview();
-      });
+    const sliderMap = {
+      'brushHardness': 'hardnessValue',
+      'brushSpacing': 'spacingValue',
+      'brushAngle': 'angleValue',
+      'brushRoundness': 'roundnessValue',
+      'minSize': 'minSizeValue'
+    };
+    
+    Object.entries(sliderMap).forEach(([sliderId, valueId]) => {
+      const slider = document.getElementById(sliderId);
+      const valueSpan = document.getElementById(valueId);
+      if (slider && valueSpan) {
+        slider.addEventListener('input', () => {
+          valueSpan.textContent = slider.value;
+          this.updateBrushPreview();
+        });
+      }
     });
     
     // Texture buttons
@@ -583,34 +592,70 @@ class ToolManager {
     const angle = parseInt(document.getElementById('brushAngle').value);
     const roundness = parseInt(document.getElementById('brushRoundness').value);
     
-    // Clear preview
+    // Clear preview with dark background
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, 200, 200);
+    
+    // Draw grid pattern for reference
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 200; i += 20) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, 200);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(200, i);
+      ctx.stroke();
+    }
+    
+    // Draw center crosshair
+    ctx.strokeStyle = '#555';
+    ctx.beginPath();
+    ctx.moveTo(100, 90);
+    ctx.lineTo(100, 110);
+    ctx.moveTo(90, 100);
+    ctx.lineTo(110, 100);
+    ctx.stroke();
     
     // Draw brush tip
     ctx.save();
     ctx.translate(100, 100);
     ctx.rotate((angle * Math.PI) / 180);
     
-    const radiusX = 40;
-    const radiusY = 40 * (roundness / 100);
+    const radiusX = 50; // Slightly larger for better visibility
+    const radiusY = 50 * (roundness / 100);
     
     // Create gradient for softness
     const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radiusX);
-    const alpha = hardness / 100;
     
     if (type === 'round' || type === 'texture') {
-      gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
-      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      // For round brush, use gradient based on hardness
+      const innerAlpha = Math.max(0.3, hardness / 100);
+      gradient.addColorStop(0, `rgba(100, 200, 255, ${innerAlpha})`);
+      gradient.addColorStop(hardness / 100, `rgba(100, 200, 255, ${innerAlpha * 0.5})`);
+      gradient.addColorStop(1, 'rgba(100, 200, 255, 0)');
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
       ctx.fill();
+      
+      // Draw outline
+      ctx.strokeStyle = `rgba(100, 200, 255, ${0.5 + (hardness/200)})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
     } else if (type === 'square') {
-      gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
-      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      // For square brush
+      gradient.addColorStop(0, `rgba(100, 200, 255, ${Math.max(0.3, hardness / 100)})`);
+      gradient.addColorStop(1, 'rgba(100, 200, 255, 0)');
       ctx.fillStyle = gradient;
       ctx.fillRect(-radiusX, -radiusY, radiusX * 2, radiusY * 2);
+      
+      // Draw outline
+      ctx.strokeStyle = `rgba(100, 200, 255, ${0.5 + (hardness/200)})`;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-radiusX, -radiusY, radiusX * 2, radiusY * 2);
     }
     
     // Add texture if selected
@@ -621,11 +666,11 @@ class ToolManager {
     
     ctx.restore();
     
-    // Draw label
-    ctx.fillStyle = '#fff';
-    ctx.font = '12px sans-serif';
+    // Draw label with current settings
+    ctx.fillStyle = '#aaa';
+    ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Brush Preview', 100, 190);
+    ctx.fillText(`${type} | H:${hardness} | R:${roundness} | A:${angle}°`, 100, 185);
   }
   
   drawTexture(ctx, textureType, w, h) {

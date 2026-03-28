@@ -11,18 +11,60 @@
     <!-- Toolbar -->
     <div id="toolbar">
       <div class="tool-section">
-        <label>Brush</label>
-        <select id="brushSelect">
-          <option value="round">Round</option>
-          <option value="square">Square</option>
-          <option value="soft">Soft</option>
-          <option value="pencil">Pencil</option>
-          <option value="marker">Marker</option>
-          <option value="spray">Spray</option>
-          <option value="charcoal">Charcoal</option>
-          <option value="---" disabled>--- Custom ---</option>
+        <label>Tool</label>
+        <select id="toolSelect">
+          <optgroup label="Brushes">
+            <option value="brush_round">Round Brush</option>
+            <option value="brush_square">Square Brush</option>
+            <option value="brush_soft">Soft Brush</option>
+            <option value="brush_pencil">Pencil</option>
+            <option value="brush_marker">Marker</option>
+            <option value="brush_spray">Spray</option>
+            <option value="brush_charcoal">Charcoal</option>
+          </optgroup>
+          <optgroup label="Tools">
+            <option value="eraser">Eraser</option>
+            <option value="smudge">Smudge/Blend</option>
+            <option value="blur">Blur</option>
+            <option value="dodge">Dodge (Lighten)</option>
+            <option value="burn">Burn (Darken)</option>
+          </optgroup>
+          <optgroup label="Custom">
+            <option value="---" disabled>--- Custom Brushes ---</option>
+          </optgroup>
         </select>
         <button id="customBrushBtn" title="Create Custom Brush">+</button>
+      </div>
+      
+      <div class="tool-section" id="blendModeSection">
+        <label>Blend</label>
+        <select id="blendMode">
+          <option value="normal">Normal</option>
+          <option value="multiply">Multiply</option>
+          <option value="screen">Screen</option>
+          <option value="overlay">Overlay</option>
+          <option value="soft-light">Soft Light</option>
+          <option value="hard-light">Hard Light</option>
+          <option value="color-dodge">Color Dodge</option>
+          <option value="color-burn">Color Burn</option>
+          <option value="difference">Difference</option>
+          <option value="exclusion">Exclusion</option>
+        </select>
+      </div>
+      
+      <div class="tool-section" id="eraserModeSection" style="display:none">
+        <label>Eraser Mode</label>
+        <select id="eraserMode">
+          <option value="pixel">Pixel</option>
+          <option value="brush">Brush</option>
+          <option value="block">Block</option>
+        </select>
+      </div>
+      
+      <div class="tool-section" id="smudgeStrengthSection" style="display:none">
+        <label>Strength</label>
+        <input type="range" id="smudgeStrength" min="1" max="100" value="50" />
+        <span id="smudgeStrengthValue">50%</span>
       </div>
       
       <div class="tool-section">

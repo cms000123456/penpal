@@ -227,19 +227,19 @@ class ShortcutManager {
         this.app.setBrushSize(25);
         break;
       case 'brush_round':
-        this.app.brushManager.setBrush('round');
+        this.app.toolManager.setTool('brush_round');
         break;
       case 'brush_soft':
-        this.app.brushManager.setBrush('soft');
+        this.app.toolManager.setTool('brush_soft');
         break;
       case 'brush_pencil':
-        this.app.brushManager.setBrush('pencil');
+        this.app.toolManager.setTool('brush_pencil');
         break;
       case 'brush_marker':
-        this.app.brushManager.setBrush('marker');
+        this.app.toolManager.setTool('brush_marker');
         break;
       case 'brush_spray':
-        this.app.brushManager.setBrush('spray');
+        this.app.toolManager.setTool('brush_spray');
         break;
       case 'color_black':
         this.app.setColor('#000000');
@@ -292,10 +292,12 @@ class ShortcutManager {
   }
 }
 
-// Brush System
-const DEFAULT_BRUSHES = {
-  round: {
-    name: 'Round',
+// Tool & Brush System
+const DEFAULT_TOOLS = {
+  // Brushes
+  brush_round: {
+    name: 'Round Brush',
+    category: 'brush',
     type: 'round',
     hardness: 100,
     spacing: 10,
@@ -304,8 +306,9 @@ const DEFAULT_BRUSHES = {
     minSize: 10,
     texture: null
   },
-  square: {
-    name: 'Square',
+  brush_square: {
+    name: 'Square Brush',
+    category: 'brush',
     type: 'square',
     hardness: 100,
     spacing: 10,
@@ -314,8 +317,9 @@ const DEFAULT_BRUSHES = {
     minSize: 10,
     texture: null
   },
-  soft: {
-    name: 'Soft',
+  brush_soft: {
+    name: 'Soft Brush',
+    category: 'brush',
     type: 'round',
     hardness: 50,
     spacing: 15,
@@ -324,8 +328,9 @@ const DEFAULT_BRUSHES = {
     minSize: 10,
     texture: null
   },
-  pencil: {
+  brush_pencil: {
     name: 'Pencil',
+    category: 'brush',
     type: 'round',
     hardness: 90,
     spacing: 5,
@@ -334,8 +339,9 @@ const DEFAULT_BRUSHES = {
     minSize: 5,
     texture: 'noise'
   },
-  marker: {
+  brush_marker: {
     name: 'Marker',
+    category: 'brush',
     type: 'square',
     hardness: 80,
     spacing: 20,
@@ -344,8 +350,9 @@ const DEFAULT_BRUSHES = {
     minSize: 50,
     texture: null
   },
-  spray: {
+  brush_spray: {
     name: 'Spray',
+    category: 'brush',
     type: 'spray',
     hardness: 30,
     spacing: 40,
@@ -354,8 +361,9 @@ const DEFAULT_BRUSHES = {
     minSize: 10,
     texture: 'dots'
   },
-  charcoal: {
+  brush_charcoal: {
     name: 'Charcoal',
+    category: 'brush',
     type: 'texture',
     hardness: 70,
     spacing: 25,
@@ -363,31 +371,94 @@ const DEFAULT_BRUSHES = {
     roundness: 100,
     minSize: 20,
     texture: 'grain'
+  },
+  // Tools
+  eraser: {
+    name: 'Eraser',
+    category: 'tool',
+    type: 'eraser',
+    mode: 'pixel', // pixel, brush, block
+    hardness: 100,
+    spacing: 5,
+    minSize: 10
+  },
+  smudge: {
+    name: 'Smudge',
+    category: 'tool',
+    type: 'smudge',
+    strength: 50,
+    spacing: 5,
+    minSize: 10
+  },
+  blur: {
+    name: 'Blur',
+    category: 'tool',
+    type: 'blur',
+    strength: 50,
+    spacing: 10,
+    minSize: 10
+  },
+  dodge: {
+    name: 'Dodge',
+    category: 'tool',
+    type: 'dodge',
+    exposure: 50,
+    spacing: 10,
+    minSize: 10
+  },
+  burn: {
+    name: 'Burn',
+    category: 'tool',
+    type: 'burn',
+    exposure: 50,
+    spacing: 10,
+    minSize: 10
   }
 };
 
-class BrushManager {
+// Blend modes for compositing
+const BLEND_MODES = {
+  normal: (base, blend) => blend,
+  multiply: (base, blend) => base * blend / 255,
+  screen: (base, blend) => 255 - (255 - base) * (255 - blend) / 255,
+  overlay: (base, blend) => base < 128 ? 2 * base * blend / 255 : 255 - 2 * (255 - base) * (255 - blend) / 255,
+  'soft-light': (base, blend) => blend < 128 ? 2 * base * blend / 255 + base * base / 255 * (1 - 2 * blend / 255) : 2 * base * (1 - blend / 255) + Math.sqrt(base / 255) * (2 * blend - 255),
+  'hard-light': (base, blend) => blend < 128 ? 2 * base * blend / 255 : 255 - 2 * (255 - base) * (255 - blend) / 255,
+  'color-dodge': (base, blend) => blend === 255 ? 255 : Math.min(255, base * 255 / (255 - blend)),
+  'color-burn': (base, blend) => blend === 0 ? 0 : 255 - Math.min(255, (255 - base) * 255 / blend),
+  difference: (base, blend) => Math.abs(base - blend),
+  exclusion: (base, blend) => base + blend - 2 * base * blend / 255
+};
+
+class ToolManager {
   constructor(app) {
     this.app = app;
-    this.currentBrush = 'round';
-    this.brushes = { ...DEFAULT_BRUSHES };
+    this.currentTool = 'brush_round';
+    this.tools = { ...DEFAULT_TOOLS };
     this.customBrushes = [];
-    this.brushCanvas = null;
-    this.brushCtx = null;
+    this.toolCanvas = null;
+    this.toolCtx = null;
     this.lastDrawPoint = null;
     this.lastDrawTime = 0;
+    this.blendMode = 'normal';
+    this.eraserMode = 'pixel';
+    this.smudgeStrength = 50;
+    
+    // For smudge/blur - store sampled pixels
+    this.sampleBuffer = null;
+    this.sampleRadius = 0;
     
     this.loadCustomBrushes();
-    this.initBrushCanvas();
+    this.initToolCanvas();
     this.setupEventListeners();
   }
   
-  initBrushCanvas() {
-    // Create offscreen canvas for brush tip generation
-    this.brushCanvas = document.createElement('canvas');
-    this.brushCanvas.width = 100;
-    this.brushCanvas.height = 100;
-    this.brushCtx = this.brushCanvas.getContext('2d');
+  initToolCanvas() {
+    // Create offscreen canvas for tool tip generation
+    this.toolCanvas = document.createElement('canvas');
+    this.toolCanvas.width = 100;
+    this.toolCanvas.height = 100;
+    this.toolCtx = this.toolCanvas.getContext('2d');
   }
   
   loadCustomBrushes() {
@@ -410,11 +481,35 @@ class BrushManager {
   }
   
   setupEventListeners() {
-    // Brush select dropdown
-    const brushSelect = document.getElementById('brushSelect');
-    brushSelect.addEventListener('change', (e) => {
-      this.setBrush(e.target.value);
+    // Tool select dropdown
+    const toolSelect = document.getElementById('toolSelect');
+    toolSelect.addEventListener('change', (e) => {
+      this.setTool(e.target.value);
     });
+    
+    // Blend mode select
+    const blendSelect = document.getElementById('blendMode');
+    blendSelect.addEventListener('change', (e) => {
+      this.blendMode = e.target.value;
+      this.app.showNotification(`Blend: ${e.target.options[e.target.selectedIndex].text}`);
+    });
+    
+    // Eraser mode select
+    const eraserModeSelect = document.getElementById('eraserMode');
+    if (eraserModeSelect) {
+      eraserModeSelect.addEventListener('change', (e) => {
+        this.eraserMode = e.target.value;
+      });
+    }
+    
+    // Smudge strength slider
+    const smudgeStrength = document.getElementById('smudgeStrength');
+    if (smudgeStrength) {
+      smudgeStrength.addEventListener('input', (e) => {
+        this.smudgeStrength = parseInt(e.target.value);
+        document.getElementById('smudgeStrengthValue').textContent = e.target.value + '%';
+      });
+    }
     
     // Custom brush button
     document.getElementById('customBrushBtn').addEventListener('click', () => {
@@ -590,6 +685,7 @@ class BrushManager {
     const activeTexture = document.querySelector('.texture-btn.active');
     const brush = {
       name: name,
+      category: 'brush',
       type: document.getElementById('customBrushType').value,
       hardness: parseInt(document.getElementById('brushHardness').value),
       spacing: parseInt(document.getElementById('brushSpacing').value),
@@ -602,14 +698,14 @@ class BrushManager {
     
     this.customBrushes.push(brush);
     const brushId = `custom_${this.customBrushes.length - 1}`;
-    this.brushes[brushId] = brush;
+    this.tools[brushId] = brush;
     
     this.saveCustomBrushes();
     this.addBrushToSelect(brushId, brush.name);
     this.renderCustomBrushesList();
     
     // Select the new brush
-    this.setBrush(brushId);
+    this.setTool(brushId);
     
     // Reset form
     document.getElementById('customBrushName').value = '';
@@ -618,12 +714,18 @@ class BrushManager {
   }
   
   addBrushToSelect(id, name) {
-    const select = document.getElementById('brushSelect');
+    const select = document.getElementById('toolSelect');
     const option = document.createElement('option');
     option.value = id;
     option.textContent = name;
     option.className = 'custom-brush-option';
-    select.appendChild(option);
+    // Add to Custom optgroup
+    const optgroup = select.querySelector('optgroup[label="Custom"]');
+    if (optgroup) {
+      optgroup.appendChild(option);
+    } else {
+      select.appendChild(option);
+    }
   }
   
   renderCustomBrushesList() {
@@ -658,7 +760,7 @@ class BrushManager {
       item.appendChild(name);
       
       item.addEventListener('click', () => {
-        this.setBrush(`custom_${index}`);
+        this.setTool(`custom_${index}`);
         document.getElementById('customBrushModal').classList.remove('active');
       });
       
@@ -670,17 +772,38 @@ class BrushManager {
     }
   }
   
-  setBrush(brushId) {
-    if (!this.brushes[brushId]) {
-      console.error('Brush not found:', brushId);
+  setTool(toolId) {
+    if (!this.tools[toolId]) {
+      console.error('Tool not found:', toolId);
       return;
     }
     
-    this.currentBrush = brushId;
-    document.getElementById('brushSelect').value = brushId;
+    this.currentTool = toolId;
+    document.getElementById('toolSelect').value = toolId;
     
-    const brush = this.brushes[brushId];
-    this.app.showNotification(`Brush: ${brush.name}`);
+    const tool = this.tools[toolId];
+    
+    // Show/hide tool-specific UI
+    const eraserSection = document.getElementById('eraserModeSection');
+    const smudgeSection = document.getElementById('smudgeStrengthSection');
+    const blendSection = document.getElementById('blendModeSection');
+    
+    if (eraserSection) {
+      eraserSection.style.display = tool.type === 'eraser' ? 'flex' : 'none';
+    }
+    if (smudgeSection) {
+      smudgeSection.style.display = (tool.type === 'smudge' || tool.type === 'blur') ? 'flex' : 'none';
+    }
+    if (blendSection) {
+      blendSection.style.display = tool.category === 'brush' ? 'flex' : 'none';
+    }
+    
+    // Reset smudge buffer when switching tools
+    if (tool.type !== 'smudge') {
+      this.sampleBuffer = null;
+    }
+    
+    this.app.showNotification(`Tool: ${tool.name}`);
   }
   
   testBrush() {
@@ -689,36 +812,228 @@ class BrushManager {
     this.app.showNotification('Test your brush on the canvas!');
   }
   
-  getCurrentBrush() {
-    return this.brushes[this.currentBrush] || this.brushes.round;
+  getCurrentTool() {
+    return this.tools[this.currentTool] || this.tools.brush_round;
   }
   
   // Main drawing method - called by DrawingApp
   draw(ctx, x, y, pressure, size, color, opacity) {
-    const brush = this.getCurrentBrush();
-    const brushSize = size * (brush.minSize / 100 + pressure * (1 - brush.minSize / 100));
-    const halfSize = brushSize / 2;
+    const tool = this.getCurrentTool();
+    const toolSize = size * (tool.minSize / 100 + pressure * (1 - tool.minSize / 100));
+    const halfSize = toolSize / 2;
     
+    ctx.save();
     ctx.globalAlpha = opacity;
     
-    switch (brush.type) {
-      case 'round':
-        this.drawRoundBrush(ctx, x, y, halfSize, color, brush.hardness);
-        break;
-      case 'square':
-        this.drawSquareBrush(ctx, x, y, halfSize, color, brush.hardness);
-        break;
-      case 'spray':
-        this.drawSprayBrush(ctx, x, y, halfSize, color);
-        break;
-      case 'texture':
-        this.drawTextureBrush(ctx, x, y, halfSize, color, brush.texture);
-        break;
-      default:
-        this.drawRoundBrush(ctx, x, y, halfSize, color, brush.hardness);
+    // Handle different tool categories
+    if (tool.category === 'brush') {
+      this.drawBrush(ctx, x, y, halfSize, color, tool, opacity);
+    } else if (tool.category === 'tool') {
+      this.drawTool(ctx, x, y, halfSize, tool, pressure, opacity);
     }
     
-    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+  
+  drawBrush(ctx, x, y, radius, color, tool, opacity) {
+    switch (tool.type) {
+      case 'round':
+        this.drawRoundBrush(ctx, x, y, radius, color, tool.hardness);
+        break;
+      case 'square':
+        this.drawSquareBrush(ctx, x, y, radius, color, tool.hardness);
+        break;
+      case 'spray':
+        this.drawSprayBrush(ctx, x, y, radius, color);
+        break;
+      case 'texture':
+        this.drawTextureBrush(ctx, x, y, radius, color, tool.texture);
+        break;
+      default:
+        this.drawRoundBrush(ctx, x, y, radius, color, tool.hardness);
+    }
+  }
+  
+  drawTool(ctx, x, y, radius, tool, pressure, opacity) {
+    switch (tool.type) {
+      case 'eraser':
+        this.drawEraser(ctx, x, y, radius, tool);
+        break;
+      case 'smudge':
+        this.drawSmudge(ctx, x, y, radius, tool, pressure);
+        break;
+      case 'blur':
+        this.drawBlur(ctx, x, y, radius, tool);
+        break;
+      case 'dodge':
+        this.drawDodgeBurn(ctx, x, y, radius, tool, true);
+        break;
+      case 'burn':
+        this.drawDodgeBurn(ctx, x, y, radius, tool, false);
+        break;
+    }
+  }
+  
+  drawEraser(ctx, x, y, radius, tool) {
+    const mode = document.getElementById('eraserMode')?.value || 'pixel';
+    
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    
+    if (mode === 'pixel' || mode === 'brush') {
+      const hardness = mode === 'pixel' ? 100 : tool.hardness;
+      this.drawRoundBrush(ctx, x, y, radius, 'rgba(0,0,0,1)', hardness);
+    } else if (mode === 'block') {
+      ctx.fillStyle = 'rgba(0,0,0,1)';
+      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+    
+    ctx.restore();
+  }
+  
+  drawSmudge(ctx, x, y, radius, tool, pressure) {
+    const strength = this.smudgeStrength / 100;
+    const appCtx = this.app.ctx;
+    
+    // Get pixel data under the brush
+    const diameter = Math.ceil(radius * 2);
+    const sx = Math.max(0, Math.floor(x - radius));
+    const sy = Math.max(0, Math.floor(y - radius));
+    const sw = Math.min(diameter, this.app.canvas.width - sx);
+    const sh = Math.min(diameter, this.app.canvas.height - sy);
+    
+    if (sw <= 0 || sh <= 0) return;
+    
+    try {
+      // Get current pixels
+      const imageData = appCtx.getImageData(sx, sy, sw, sh);
+      const data = imageData.data;
+      
+      // Create smudged version by averaging with previous position
+      if (this.sampleBuffer && this.lastDrawPoint) {
+        const blendFactor = strength * pressure;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          if (this.sampleBuffer[i + 3] > 0) { // If sampled pixel is not transparent
+            data[i] = data[i] * (1 - blendFactor) + this.sampleBuffer[i] * blendFactor;
+            data[i + 1] = data[i + 1] * (1 - blendFactor) + this.sampleBuffer[i + 1] * blendFactor;
+            data[i + 2] = data[i + 2] * (1 - blendFactor) + this.sampleBuffer[i + 2] * blendFactor;
+          }
+        }
+        
+        // Put modified pixels back
+        appCtx.putImageData(imageData, sx, sy);
+      }
+      
+      // Store current pixels for next smudge
+      this.sampleBuffer = new Uint8ClampedArray(data);
+      this.sampleRadius = radius;
+      
+    } catch (e) {
+      console.log('Smudge error:', e);
+    }
+  }
+  
+  drawBlur(ctx, x, y, radius, tool) {
+    const appCtx = this.app.ctx;
+    const blurAmount = Math.ceil(radius / 4);
+    const sx = Math.max(0, Math.floor(x - radius));
+    const sy = Math.max(0, Math.floor(y - radius));
+    const sw = Math.ceil(radius * 2);
+    const sh = Math.ceil(radius * 2);
+    
+    if (sw <= 0 || sh <= 0) return;
+    
+    try {
+      // Simple box blur
+      const imageData = appCtx.getImageData(sx, sy, sw, sh);
+      const data = imageData.data;
+      const output = new Uint8ClampedArray(data);
+      
+      for (let by = 0; by < sh; by++) {
+        for (let bx = 0; bx < sw; bx++) {
+          const px = sx + bx;
+          const py = sy + by;
+          const dist = Math.sqrt((px - x) ** 2 + (py - y) ** 2);
+          
+          if (dist > radius) continue;
+          
+          let r = 0, g = 0, b = 0, a = 0, count = 0;
+          
+          // Sample surrounding pixels
+          for (let dy = -blurAmount; dy <= blurAmount; dy++) {
+            for (let dx = -blurAmount; dx <= blurAmount; dx++) {
+              const ny = by + dy;
+              const nx = bx + dx;
+              if (ny >= 0 && ny < sh && nx >= 0 && nx < sw) {
+                const idx = (ny * sw + nx) * 4;
+                r += data[idx];
+                g += data[idx + 1];
+                b += data[idx + 2];
+                a += data[idx + 3];
+                count++;
+              }
+            }
+          }
+          
+          const idx = (by * sw + bx) * 4;
+          output[idx] = r / count;
+          output[idx + 1] = g / count;
+          output[idx + 2] = b / count;
+          output[idx + 3] = a / count;
+        }
+      }
+      
+      appCtx.putImageData(new ImageData(output, sw, sh), sx, sy);
+    } catch (e) {
+      console.log('Blur error:', e);
+    }
+  }
+  
+  drawDodgeBurn(ctx, x, y, radius, tool, isDodge) {
+    const appCtx = this.app.ctx;
+    const exposure = (tool.exposure || 50) / 100;
+    const sx = Math.max(0, Math.floor(x - radius));
+    const sy = Math.max(0, Math.floor(y - radius));
+    const sw = Math.ceil(radius * 2);
+    const sh = Math.ceil(radius * 2);
+    
+    if (sw <= 0 || sh <= 0) return;
+    
+    try {
+      const imageData = appCtx.getImageData(sx, sy, sw, sh);
+      const data = imageData.data;
+      
+      for (let by = 0; by < sh; by++) {
+        for (let bx = 0; bx < sw; bx++) {
+          const px = sx + bx;
+          const py = sy + by;
+          const dist = Math.sqrt((px - x) ** 2 + (py - y) ** 2);
+          
+          if (dist > radius) continue;
+          
+          const idx = (by * sw + bx) * 4;
+          let intensity = 1 - (dist / radius); // Stronger in center
+          intensity *= exposure * 0.3;
+          
+          if (isDodge) {
+            // Lighten
+            data[idx] = Math.min(255, data[idx] + (255 - data[idx]) * intensity);
+            data[idx + 1] = Math.min(255, data[idx + 1] + (255 - data[idx + 1]) * intensity);
+            data[idx + 2] = Math.min(255, data[idx + 2] + (255 - data[idx + 2]) * intensity);
+          } else {
+            // Darken
+            data[idx] = Math.max(0, data[idx] * (1 - intensity));
+            data[idx + 1] = Math.max(0, data[idx + 1] * (1 - intensity));
+            data[idx + 2] = Math.max(0, data[idx + 2] * (1 - intensity));
+          }
+        }
+      }
+      
+      appCtx.putImageData(imageData, sx, sy);
+    } catch (e) {
+      console.log('Dodge/Burn error:', e);
+    }
   }
   
   drawRoundBrush(ctx, x, y, radius, color, hardness) {
@@ -839,7 +1154,7 @@ class DrawingApp {
     
     // Initialize managers
     this.shortcutManager = new ShortcutManager(this);
-    this.brushManager = new BrushManager(this);
+    this.toolManager = new ToolManager(this);
     
     this.init();
   }
@@ -1035,16 +1350,16 @@ class DrawingApp {
     this.ctx.beginPath();
     this.ctx.moveTo(x, y);
     
-    // Use brush manager for drawing
+    // Use tool manager for drawing
     const size = this.usePressure 
       ? this.brushSize * (0.2 + pressure * 0.8) 
       : this.brushSize;
     
-    this.brushManager.draw(this.ctx, x, y, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
+    this.toolManager.draw(this.ctx, x, y, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
     
     // Store last draw point for spacing calculations
-    this.brushManager.lastDrawPoint = { x, y };
-    this.brushManager.lastDrawTime = Date.now();
+    this.toolManager.lastDrawPoint = { x, y };
+    this.toolManager.lastDrawTime = Date.now();
   }
   
   draw(x, y, pressure) {
@@ -1052,13 +1367,13 @@ class DrawingApp {
       ? this.brushSize * (0.2 + pressure * 0.8) 
       : this.brushSize;
     
-    const brush = this.brushManager.getCurrentBrush();
-    const spacing = (brush.spacing / 100) * size;
+    const tool = this.toolManager.getCurrentTool();
+    const spacing = (tool.spacing / 100) * size;
     
-    // Interpolate points based on brush spacing
-    if (this.brushManager.lastDrawPoint) {
-      const lastX = this.brushManager.lastDrawPoint.x;
-      const lastY = this.brushManager.lastDrawPoint.y;
+    // Interpolate points based on tool spacing
+    if (this.toolManager.lastDrawPoint) {
+      const lastX = this.toolManager.lastDrawPoint.x;
+      const lastY = this.toolManager.lastDrawPoint.y;
       const dist = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
       
       if (dist >= spacing) {
@@ -1067,9 +1382,9 @@ class DrawingApp {
           const t = i / steps;
           const ix = lastX + (x - lastX) * t;
           const iy = lastY + (y - lastY) * t;
-          this.brushManager.draw(this.ctx, ix, iy, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
+          this.toolManager.draw(this.ctx, ix, iy, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
         }
-        this.brushManager.lastDrawPoint = { x, y };
+        this.toolManager.lastDrawPoint = { x, y };
       }
     }
   }
@@ -1228,16 +1543,16 @@ class DrawingApp {
           const color = this.hexToRgba(stroke.color, stroke.opacity);
           
           if (lastPoint) {
-            const brush = this.brushManager.getCurrentBrush();
-            const spacing = (brush.spacing / 100) * size;
+            const tool = this.toolManager.getCurrentTool();
+            const spacing = (tool.spacing / 100) * size;
             const dist = Math.sqrt((point.x - lastPoint.x) ** 2 + (point.y - lastPoint.y) ** 2);
             
             if (dist >= spacing || !lastPoint) {
-              this.brushManager.draw(this.ctx, point.x, point.y, point.pressure, size, color, stroke.opacity);
+              this.toolManager.draw(this.ctx, point.x, point.y, point.pressure, size, color, stroke.opacity);
               lastPoint = point;
             }
           } else {
-            this.brushManager.draw(this.ctx, point.x, point.y, point.pressure, size, color, stroke.opacity);
+            this.toolManager.draw(this.ctx, point.x, point.y, point.pressure, size, color, stroke.opacity);
             lastPoint = point;
           }
         }

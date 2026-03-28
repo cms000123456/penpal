@@ -1,13 +1,31 @@
 {
   "name": "penpal-draw",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A drawing app for XPPen Artist 15.6 Pro V2",
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",
-    "build": "tauri build"
+    "build": "tauri build",
+    "build:win": "tauri build --target x86_64-pc-windows-msvc",
+    "build:mac": "tauri build --target x86_64-apple-darwin",
+    "build:mac-arm": "tauri build --target aarch64-apple-darwin",
+    "build:linux": "tauri build --target x86_64-unknown-linux-gnu"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cms000123456/penpal.git"
+  },
+  "keywords": [
+    "drawing",
+    "xppen",
+    "pen-tablet",
+    "graphics",
+    "tauri",
+    "rust"
+  ],
+  "author": "cms",
+  "license": "MIT"
 }

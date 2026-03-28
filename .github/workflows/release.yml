@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            target: 'aarch64-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            target: 'x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+            target: 'x86_64-unknown-linux-gnu'
+          - platform: 'windows-latest'
+            args: ''
+            target: 'x86_64-pc-windows-msvc'
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: install frontend dependencies
+        run: npm install
+
+      - name: build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'PenPal Draw ${{ github.ref_name }}'
+          releaseBody: |
+            ## PenPal Draw ${{ github.ref_name }}
+            
+            A drawing app for XPPen Artist 15.6 Pro V2 and other pen tablets.
+            
+            ### Features
+            - 🎨 Pressure-sensitive drawing
+            - 🖌️ 7 preset brushes + custom brush creator
+            - 🔧 Advanced tools: eraser, smudge, blur, dodge, burn
+            - 🔀 10 blend modes
+            - ⌨️ XPPen shortcut key support
+            - ❓ In-app help system
+            
+            ### Installation
+            
+            **Windows:**
+            - Download `.msi` installer and run it
+            - Or download `.exe` portable version
+            
+            **macOS:**
+            - Download `.dmg` and drag to Applications
+            - Note: You may need to allow the app in System Preferences > Security
+            
+            **Linux:**
+            - Download `.AppImage` and make it executable: `chmod +x *.AppImage`
+            - Or install `.deb` package: `sudo dpkg -i *.deb`
+            
+            ### System Requirements
+            - Windows 10/11, macOS 11+, or Ubuntu 20.04+
+            - For pressure sensitivity: XPPen or Wacom tablet recommended
+            
+            See [README](https://github.com/${{ github.repository }}/blob/main/README.md) for detailed documentation.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  # Web version build (for easy testing)
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Create web release zip
+        run: |
+          mkdir -p penpal-draw-web
+          cp -r src/* penpal-draw-web/
+          zip -r penpal-draw-web.zip penpal-draw-web/
+      
+      - name: Upload web version to release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: penpal-draw-web.zip
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

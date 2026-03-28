@@ -36,6 +36,7 @@
       ],
       "identifier": "com.penpal.draw",
       "longDescription": "A drawing app for XPPen Artist 15.6 Pro V2 with pressure sensitivity support",
+      "publisher": "PenPal",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",

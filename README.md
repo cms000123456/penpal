@@ -20,6 +20,14 @@ A lightweight, cross-platform drawing app designed for the **XPPen Artist 15.6 P
 - ⌨️ **Keyboard Shortcuts** - Quick access to common actions
 - ❓ **In-App Help** - Comprehensive documentation with search (F1)
 
+## Screenshots
+
+| Main Interface | Web Version |
+|:--:|:--:|
+| ![Web Version](screenshots/web.png) | *(More screenshots coming soon!)* |
+
+*The web version running in browser. Desktop app has additional features like multi-monitor support.*
+
 ## Requirements
 
 - Windows 10/11, macOS, or Linux

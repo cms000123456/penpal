@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 env:
-  # Opt into Node.js 24 to suppress deprecation warnings
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -76,8 +75,6 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD are optional
-          # If not set, builds will be unsigned (which is fine for open source)
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'PenPal Draw ${{ github.ref_name }}'
@@ -97,50 +94,17 @@ jobs:
             ### Installation
             
             **Windows:**
-            - Download `.msi` installer and run it
-            - Or download `.exe` portable version
+            - Download `.msi` or `.exe` and run
             
             **macOS:**
             - Download `.dmg` and drag to Applications
-            - Note: You may need to allow the app in System Preferences > Security
             
             **Linux:**
-            - Download `.AppImage` and make it executable: `chmod +x *.AppImage`
-            - Or install `.deb` package: `sudo dpkg -i *.deb`
+            - `.AppImage`: `chmod +x *.AppImage && ./*.AppImage`
+            - `.deb`: `sudo dpkg -i *.deb`
             
             ### System Requirements
             - Windows 10/11, macOS 11+, or Ubuntu 20.04+
-            - For pressure sensitivity: XPPen or Wacom tablet recommended
-            
-            See [README](https://github.com/${{ github.repository }}/blob/main/README.md) for detailed documentation.
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
-
-  # Web version build (for easy testing)
-  build-web:
-    runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      
-      - name: Create web release zip
-        run: |
-          mkdir -p penpal-draw-web
-          cp -r src/* penpal-draw-web/
-          zip -r penpal-draw-web.zip penpal-draw-web/
-      
-      - name: Upload web version to release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: penpal-draw-web.zip
-          draft: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

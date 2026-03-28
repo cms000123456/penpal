@@ -7,7 +7,8 @@ A lightweight, cross-platform drawing app designed for the **XPPen Artist 15.6 P
 - 🎨 **Pressure Sensitivity** - Full support for pen pressure (requires compatible pen tablet)
 - 🖥️ **Multi-Monitor Support** - Easily move the app to your pen display
 - ⬜ **Fullscreen Mode** - Draw without distractions
-- 🖌️ **Customizable Brushes** - Adjust size, color, and opacity
+- 🖌️ **Brush System** - Multiple brush types: Round, Square, Soft, Pencil, Marker, Spray, Charcoal
+- ✨ **Custom Brushes** - Create your own brushes with adjustable hardness, spacing, texture
 - ↩️ **Undo/Redo** - Ctrl+Z / Ctrl+Y to undo/redo strokes
 - 💾 **Save as PNG** - Export your artwork
 - ⌨️ **Shortcut Keys** - Full support for XPPen's 8 shortcut keys with customizable actions
@@ -74,6 +75,31 @@ The built app will be in `src-tauri/target/release/bundle/`.
 - **Color**: Pick from the color selector
 - **Opacity**: Adjust transparency (1-100%)
 
+### Brushes
+
+Select from preset brushes:
+- **Round** - Standard circular brush
+- **Square** - Hard-edged square brush
+- **Soft** - Soft-edged circular brush
+- **Pencil** - Textured pencil effect
+- **Marker** - Broad marker with variable opacity
+- **Spray** - Airbrush spray effect
+- **Charcoal** - Grainy texture brush
+
+### Custom Brushes
+
+Click the **+** button next to the brush selector to create custom brushes:
+
+1. **Brush Type** - Choose base shape (round, square, soft, textured, pattern)
+2. **Hardness** - Edge softness (0-100%)
+3. **Spacing** - Distance between brush stamps (1-100%)
+4. **Angle** - Brush rotation (0-360°)
+5. **Roundness** - Circle compression (1-100%)
+6. **Min Size** - Size at minimum pressure (1-100%)
+7. **Texture** - Add noise, grain, dots, or lines (for textured brushes)
+
+Custom brushes are saved automatically and persist between sessions!
+
 ### Keyboard Shortcuts
 
 | Shortcut | Action |
@@ -89,6 +115,7 @@ The built app will be in `src-tauri/target/release/bundle/`.
 Click the **⌨️ Keys** button in the toolbar to configure your XPPen Artist 15.6 Pro V2's 8 shortcut keys.
 
 **Available Actions:**
+- Brush types (Round/Soft/Pencil/Marker/Spray)
 - Brush sizes (Small/Medium/Large)
 - Colors (Black/White/Red/Pick from canvas)
 - Undo / Redo

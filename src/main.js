@@ -676,9 +676,19 @@ class ToolManager {
   }
   
   saveNewBrush() {
-    const name = document.getElementById('customBrushName').value.trim();
+    let name = document.getElementById('customBrushName').value.trim();
+    
+    // Validate and sanitize brush name
     if (!name) {
       alert('Please enter a brush name');
+      return;
+    }
+    
+    // Sanitize: remove HTML tags, limit length
+    name = name.replace(/<[^>]*>/g, '').substring(0, 20).trim();
+    
+    if (!name) {
+      alert('Please enter a valid brush name (no HTML tags)');
       return;
     }
     
@@ -1134,6 +1144,9 @@ class DrawingApp {
     this.strokes = [];
     this.redoStack = [];
     
+    // Memory management limits
+    this.MAX_STROKES = 1000; // Limit undo history to prevent memory issues
+    
     // Brush settings
     this.brushSize = 5;
     this.color = '#000000';
@@ -1311,6 +1324,9 @@ class DrawingApp {
         usePressure: this.usePressure,
         isEraser: this.isEraser
       });
+      
+      // Manage memory
+      this.manageStrokeHistory();
     }
     
     this.currentStroke = [];
@@ -1495,6 +1511,21 @@ class DrawingApp {
     this.ctx.fillStyle = this.backgroundColor;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     console.log('Canvas cleared');
+  }
+  
+  manageStrokeHistory() {
+    // Limit stroke history to prevent memory issues
+    if (this.strokes.length > this.MAX_STROKES) {
+      // Remove oldest 20% of strokes
+      const removeCount = Math.floor(this.MAX_STROKES * 0.2);
+      this.strokes.splice(0, removeCount);
+      console.log(`Memory management: Removed ${removeCount} old strokes`);
+    }
+    
+    // Also limit redo stack
+    if (this.redoStack.length > 100) {
+      this.redoStack.splice(0, this.redoStack.length - 100);
+    }
   }
   
   undo() {
@@ -1796,6 +1827,7 @@ class HelpSystem {
     this.searchInput = document.getElementById('helpSearch');
     this.links = document.querySelectorAll('.help-link');
     this.sections = document.querySelectorAll('.help-section');
+    this.searchDebounceTimer = null;
     
     this.setupEventListeners();
   }
@@ -1826,9 +1858,12 @@ class HelpSystem {
       });
     });
     
-    // Search functionality
+    // Search functionality with debouncing
     this.searchInput.addEventListener('input', () => {
-      this.performSearch(this.searchInput.value);
+      clearTimeout(this.searchDebounceTimer);
+      this.searchDebounceTimer = setTimeout(() => {
+        this.performSearch(this.searchInput.value);
+      }, 300);
     });
     
     // Keyboard shortcut for help (F1)
@@ -1902,7 +1937,9 @@ class HelpSystem {
   }
   
   highlightText(element, query) {
-    // Simple highlight implementation
+    // Sanitize query to prevent XSS
+    const sanitizedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
     const textNodes = [];
     
@@ -1913,12 +1950,28 @@ class HelpSystem {
     textNodes.forEach(node => {
       const text = node.textContent.toLowerCase();
       if (text.includes(query) && node.parentNode.className !== 'highlight') {
-        const regex = new RegExp(`(${query})`, 'gi');
-        const html = node.textContent.replace(regex, '<span class="highlight">$1</span>');
-        
-        const span = document.createElement('span');
-        span.innerHTML = html;
-        node.parentNode.replaceChild(span, node);
+        try {
+          const regex = new RegExp(`(${sanitizedQuery})`, 'gi');
+          const parts = node.textContent.split(regex);
+          
+          // Create document fragment to safely build DOM
+          const fragment = document.createDocumentFragment();
+          parts.forEach((part, i) => {
+            if (regex.test(part)) {
+              const highlight = document.createElement('span');
+              highlight.className = 'highlight';
+              highlight.textContent = part; // Safe: textContent escapes HTML
+              fragment.appendChild(highlight);
+            } else {
+              fragment.appendChild(document.createTextNode(part));
+            }
+          });
+          
+          node.parentNode.replaceChild(fragment, node);
+        } catch (e) {
+          // Invalid regex, skip this node
+          console.warn('Invalid search pattern:', e);
+        }
       }
     });
   }

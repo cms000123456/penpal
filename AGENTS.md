@@ -53,6 +53,15 @@ Built with Tauri (Rust + Web technologies).
    - Actions: brush types, sizes, colors, undo/redo, save, eraser, fullscreen
    - Settings persist to localStorage
 
+7. **In-App Help System**
+   - `HelpSystem` class manages help modal
+   - Sidebar navigation with 8 help sections
+   - Search functionality with text highlighting
+   - F1 keyboard shortcut to open
+   - Comprehensive documentation for all features
+   - Tips & Tricks section
+   - Troubleshooting guides
+
 ## File Structure
 
 ```

@@ -396,6 +396,259 @@ kbd {
   margin: 0;
 }
 
+/* Brush Select */
+#brushSelect {
+  padding: 6px 10px;
+  background: #4a4a4a;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+#brushSelect:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #4CAF50;
+}
+
+#customBrushBtn {
+  padding: 6px 10px;
+  background: #4CAF50;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#customBrushBtn:hover {
+  background: #45a049;
+}
+
+/* Brush Creator Modal */
+.brush-creator {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.brush-preview-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+#brushPreview {
+  background: #1a1a1a;
+  border: 2px solid #3d3d3d;
+  border-radius: 8px;
+}
+
+.brush-preview-label {
+  color: #888;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.brush-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.control-group label {
+  color: #aaa;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-group input[type="text"] {
+  padding: 8px 12px;
+  background: #3d3d3d;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.control-group input[type="text"]:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.control-group select {
+  padding: 8px 12px;
+  background: #3d3d3d;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+}
+
+.control-group small {
+  color: #666;
+  font-size: 11px;
+}
+
+.texture-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.texture-btn {
+  padding: 8px;
+  background: #3d3d3d;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.texture-btn:hover,
+.texture-btn.active {
+  background: #4CAF50;
+  border-color: #4CAF50;
+  color: #fff;
+}
+
+.brush-actions {
+  display: flex;
+  gap: 10px;
+  padding: 20px 0;
+  border-top: 1px solid #3d3d3d;
+  border-bottom: 1px solid #3d3d3d;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary {
+  background: #4CAF50;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #45a049;
+}
+
+.btn-secondary {
+  background: #4a4a4a;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background: #5a5a5a;
+}
+
+.btn-danger {
+  background: #f44336;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #da190b;
+}
+
+.custom-brushes-list {
+  margin-top: 20px;
+}
+
+.custom-brushes-list h3 {
+  color: #fff;
+  font-size: 16px;
+  margin: 0 0 15px 0;
+}
+
+.brushes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
+}
+
+.brush-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 15px;
+  background: #1a1a1a;
+  border: 2px solid #3d3d3d;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.brush-item:hover {
+  border-color: #4a4a4a;
+  background: #252525;
+}
+
+.brush-item.active {
+  border-color: #4CAF50;
+  background: #1a2f1a;
+}
+
+.brush-item canvas {
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+
+.brush-item span {
+  color: #ccc;
+  font-size: 12px;
+  text-align: center;
+}
+
+.brush-item .delete-brush {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  background: #f44336;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  display: none;
+}
+
+.brush-item:hover .delete-brush {
+  display: block;
+}
+
 /* Notification Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateX(-50%) translateY(10px); }

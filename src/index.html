@@ -11,6 +11,21 @@
     <!-- Toolbar -->
     <div id="toolbar">
       <div class="tool-section">
+        <label>Brush</label>
+        <select id="brushSelect">
+          <option value="round">Round</option>
+          <option value="square">Square</option>
+          <option value="soft">Soft</option>
+          <option value="pencil">Pencil</option>
+          <option value="marker">Marker</option>
+          <option value="spray">Spray</option>
+          <option value="charcoal">Charcoal</option>
+          <option value="---" disabled>--- Custom ---</option>
+        </select>
+        <button id="customBrushBtn" title="Create Custom Brush">+</button>
+      </div>
+      
+      <div class="tool-section">
         <label>Brush Size</label>
         <input type="range" id="brushSize" min="1" max="100" value="5" />
         <span id="brushSizeValue">5</span>
@@ -63,6 +78,91 @@
       <canvas id="drawingCanvas"></canvas>
     </div>
     
+    <!-- Custom Brush Modal -->
+    <div id="customBrushModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Custom Brush Creator</h2>
+          <button class="close-btn" id="closeCustomBrush">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="brush-creator">
+            <div class="brush-preview-section">
+              <canvas id="brushPreview" width="200" height="200"></canvas>
+              <div class="brush-preview-label">Preview</div>
+            </div>
+            
+            <div class="brush-controls">
+              <div class="control-group">
+                <label>Brush Name</label>
+                <input type="text" id="customBrushName" placeholder="My Brush" maxlength="20">
+              </div>
+              
+              <div class="control-group">
+                <label>Brush Type</label>
+                <select id="customBrushType">
+                  <option value="round">Round</option>
+                  <option value="square">Square</option>
+                  <option value="soft">Soft Round</option>
+                  <option value="texture">Textured</option>
+                  <option value="pattern">Pattern</option>
+                </select>
+              </div>
+              
+              <div class="control-group">
+                <label>Hardness: <span id="hardnessValue">50</span>%</label>
+                <input type="range" id="brushHardness" min="0" max="100" value="50">
+              </div>
+              
+              <div class="control-group">
+                <label>Spacing: <span id="spacingValue">25</span>%</label>
+                <input type="range" id="brushSpacing" min="1" max="100" value="25">
+              </div>
+              
+              <div class="control-group">
+                <label>Angle: <span id="angleValue">0</span>°</label>
+                <input type="range" id="brushAngle" min="0" max="360" value="0">
+              </div>
+              
+              <div class="control-group">
+                <label>Roundness: <span id="roundnessValue">100</span>%</label>
+                <input type="range" id="brushRoundness" min="1" max="100" value="100">
+              </div>
+              
+              <div class="control-group texture-controls" style="display:none">
+                <label>Texture</label>
+                <div class="texture-presets">
+                  <button class="texture-btn" data-texture="noise">Noise</button>
+                  <button class="texture-btn" data-texture="grain">Grain</button>
+                  <button class="texture-btn" data-texture="dots">Dots</button>
+                  <button class="texture-btn" data-texture="lines">Lines</button>
+                </div>
+              </div>
+              
+              <div class="control-group">
+                <label>Min Size: <span id="minSizeValue">10</span>%</label>
+                <input type="range" id="minSize" min="1" max="100" value="10">
+                <small>Size at minimum pressure</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="brush-actions">
+            <button id="saveCustomBrush" class="btn-primary">Save Brush</button>
+            <button id="testCustomBrush" class="btn-secondary">Test on Canvas</button>
+            <button id="deleteCustomBrush" class="btn-danger" style="display:none">Delete</button>
+          </div>
+          
+          <div class="custom-brushes-list">
+            <h3>Your Custom Brushes</h3>
+            <div id="customBrushesGrid" class="brushes-grid">
+              <!-- Custom brushes will appear here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- Shortcut Keys Modal -->
     <div id="shortcutsModal" class="modal">
       <div class="modal-content">
@@ -82,6 +182,11 @@
                 <option value="brush_small">Brush: Small</option>
                 <option value="brush_medium" selected>Brush: Medium</option>
                 <option value="brush_large">Brush: Large</option>
+                <option value="brush_round">Brush: Round</option>
+                <option value="brush_soft">Brush: Soft</option>
+                <option value="brush_pencil">Brush: Pencil</option>
+                <option value="brush_marker">Brush: Marker</option>
+                <option value="brush_spray">Brush: Spray</option>
                 <option value="color_black">Color: Black</option>
                 <option value="color_white">Color: White</option>
                 <option value="color_red">Color: Red</option>

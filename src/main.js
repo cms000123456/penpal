@@ -226,6 +226,21 @@ class ShortcutManager {
       case 'brush_large':
         this.app.setBrushSize(25);
         break;
+      case 'brush_round':
+        this.app.brushManager.setBrush('round');
+        break;
+      case 'brush_soft':
+        this.app.brushManager.setBrush('soft');
+        break;
+      case 'brush_pencil':
+        this.app.brushManager.setBrush('pencil');
+        break;
+      case 'brush_marker':
+        this.app.brushManager.setBrush('marker');
+        break;
+      case 'brush_spray':
+        this.app.brushManager.setBrush('spray');
+        break;
       case 'color_black':
         this.app.setColor('#000000');
         break;
@@ -277,6 +292,524 @@ class ShortcutManager {
   }
 }
 
+// Brush System
+const DEFAULT_BRUSHES = {
+  round: {
+    name: 'Round',
+    type: 'round',
+    hardness: 100,
+    spacing: 10,
+    angle: 0,
+    roundness: 100,
+    minSize: 10,
+    texture: null
+  },
+  square: {
+    name: 'Square',
+    type: 'square',
+    hardness: 100,
+    spacing: 10,
+    angle: 0,
+    roundness: 100,
+    minSize: 10,
+    texture: null
+  },
+  soft: {
+    name: 'Soft',
+    type: 'round',
+    hardness: 50,
+    spacing: 15,
+    angle: 0,
+    roundness: 100,
+    minSize: 10,
+    texture: null
+  },
+  pencil: {
+    name: 'Pencil',
+    type: 'round',
+    hardness: 90,
+    spacing: 5,
+    angle: 0,
+    roundness: 100,
+    minSize: 5,
+    texture: 'noise'
+  },
+  marker: {
+    name: 'Marker',
+    type: 'square',
+    hardness: 80,
+    spacing: 20,
+    angle: 0,
+    roundness: 80,
+    minSize: 50,
+    texture: null
+  },
+  spray: {
+    name: 'Spray',
+    type: 'spray',
+    hardness: 30,
+    spacing: 40,
+    angle: 0,
+    roundness: 100,
+    minSize: 10,
+    texture: 'dots'
+  },
+  charcoal: {
+    name: 'Charcoal',
+    type: 'texture',
+    hardness: 70,
+    spacing: 25,
+    angle: 0,
+    roundness: 100,
+    minSize: 20,
+    texture: 'grain'
+  }
+};
+
+class BrushManager {
+  constructor(app) {
+    this.app = app;
+    this.currentBrush = 'round';
+    this.brushes = { ...DEFAULT_BRUSHES };
+    this.customBrushes = [];
+    this.brushCanvas = null;
+    this.brushCtx = null;
+    this.lastDrawPoint = null;
+    this.lastDrawTime = 0;
+    
+    this.loadCustomBrushes();
+    this.initBrushCanvas();
+    this.setupEventListeners();
+  }
+  
+  initBrushCanvas() {
+    // Create offscreen canvas for brush tip generation
+    this.brushCanvas = document.createElement('canvas');
+    this.brushCanvas.width = 100;
+    this.brushCanvas.height = 100;
+    this.brushCtx = this.brushCanvas.getContext('2d');
+  }
+  
+  loadCustomBrushes() {
+    const saved = localStorage.getItem('penpal-custom-brushes');
+    if (saved) {
+      try {
+        this.customBrushes = JSON.parse(saved);
+        // Add custom brushes to brush select
+        this.customBrushes.forEach((brush, index) => {
+          this.brushes[`custom_${index}`] = brush;
+        });
+      } catch (e) {
+        console.log('Failed to load custom brushes:', e);
+      }
+    }
+  }
+  
+  saveCustomBrushes() {
+    localStorage.setItem('penpal-custom-brushes', JSON.stringify(this.customBrushes));
+  }
+  
+  setupEventListeners() {
+    // Brush select dropdown
+    const brushSelect = document.getElementById('brushSelect');
+    brushSelect.addEventListener('change', (e) => {
+      this.setBrush(e.target.value);
+    });
+    
+    // Custom brush button
+    document.getElementById('customBrushBtn').addEventListener('click', () => {
+      this.openBrushCreator();
+    });
+    
+    // Brush creator modal
+    const modal = document.getElementById('customBrushModal');
+    document.getElementById('closeCustomBrush').addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('active');
+    });
+    
+    // Brush creator controls
+    this.setupBrushCreatorControls();
+    
+    // Initial preview
+    this.updateBrushPreview();
+  }
+  
+  setupBrushCreatorControls() {
+    // Type select
+    document.getElementById('customBrushType').addEventListener('change', () => {
+      this.updateBrushPreview();
+    });
+    
+    // Sliders
+    const sliders = ['brushHardness', 'brushSpacing', 'brushAngle', 'brushRoundness', 'minSize'];
+    sliders.forEach(id => {
+      const slider = document.getElementById(id);
+      const valueSpan = document.getElementById(id.replace('brush', '').replace('min', 'minSize') + 'Value');
+      slider.addEventListener('input', () => {
+        valueSpan.textContent = slider.value;
+        this.updateBrushPreview();
+      });
+    });
+    
+    // Texture buttons
+    document.querySelectorAll('.texture-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.texture-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.updateBrushPreview();
+      });
+    });
+    
+    // Save button
+    document.getElementById('saveCustomBrush').addEventListener('click', () => {
+      this.saveNewBrush();
+    });
+    
+    // Test button
+    document.getElementById('testCustomBrush').addEventListener('click', () => {
+      this.testBrush();
+    });
+  }
+  
+  openBrushCreator() {
+    document.getElementById('customBrushModal').classList.add('active');
+    this.renderCustomBrushesList();
+    this.updateBrushPreview();
+  }
+  
+  updateBrushPreview() {
+    const preview = document.getElementById('brushPreview');
+    const ctx = preview.getContext('2d');
+    const type = document.getElementById('customBrushType').value;
+    const hardness = parseInt(document.getElementById('brushHardness').value);
+    const angle = parseInt(document.getElementById('brushAngle').value);
+    const roundness = parseInt(document.getElementById('brushRoundness').value);
+    
+    // Clear preview
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, 200, 200);
+    
+    // Draw brush tip
+    ctx.save();
+    ctx.translate(100, 100);
+    ctx.rotate((angle * Math.PI) / 180);
+    
+    const radiusX = 40;
+    const radiusY = 40 * (roundness / 100);
+    
+    // Create gradient for softness
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radiusX);
+    const alpha = hardness / 100;
+    
+    if (type === 'round' || type === 'texture') {
+      gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (type === 'square') {
+      gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(-radiusX, -radiusY, radiusX * 2, radiusY * 2);
+    }
+    
+    // Add texture if selected
+    const activeTexture = document.querySelector('.texture-btn.active');
+    if (activeTexture && type === 'texture') {
+      this.drawTexture(ctx, activeTexture.dataset.texture, radiusX, radiusY);
+    }
+    
+    ctx.restore();
+    
+    // Draw label
+    ctx.fillStyle = '#fff';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Brush Preview', 100, 190);
+  }
+  
+  drawTexture(ctx, textureType, w, h) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    
+    switch (textureType) {
+      case 'noise':
+        for (let i = 0; i < 100; i++) {
+          const x = (Math.random() - 0.5) * w * 2;
+          const y = (Math.random() - 0.5) * h * 2;
+          ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.5})`;
+          ctx.fillRect(x, y, 2, 2);
+        }
+        break;
+      case 'grain':
+        for (let i = 0; i < 200; i++) {
+          const x = (Math.random() - 0.5) * w * 2;
+          const y = (Math.random() - 0.5) * h * 2;
+          ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.3})`;
+          ctx.fillRect(x, y, 1, 1);
+        }
+        break;
+      case 'dots':
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        for (let i = 0; i < 20; i++) {
+          const x = (Math.random() - 0.5) * w * 2;
+          const y = (Math.random() - 0.5) * h * 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        break;
+      case 'lines':
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 10; i++) {
+          const y = (Math.random() - 0.5) * h * 2;
+          ctx.beginPath();
+          ctx.moveTo(-w, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+        break;
+    }
+    
+    ctx.restore();
+  }
+  
+  saveNewBrush() {
+    const name = document.getElementById('customBrushName').value.trim();
+    if (!name) {
+      alert('Please enter a brush name');
+      return;
+    }
+    
+    const activeTexture = document.querySelector('.texture-btn.active');
+    const brush = {
+      name: name,
+      type: document.getElementById('customBrushType').value,
+      hardness: parseInt(document.getElementById('brushHardness').value),
+      spacing: parseInt(document.getElementById('brushSpacing').value),
+      angle: parseInt(document.getElementById('brushAngle').value),
+      roundness: parseInt(document.getElementById('brushRoundness').value),
+      minSize: parseInt(document.getElementById('minSize').value),
+      texture: activeTexture ? activeTexture.dataset.texture : null,
+      isCustom: true
+    };
+    
+    this.customBrushes.push(brush);
+    const brushId = `custom_${this.customBrushes.length - 1}`;
+    this.brushes[brushId] = brush;
+    
+    this.saveCustomBrushes();
+    this.addBrushToSelect(brushId, brush.name);
+    this.renderCustomBrushesList();
+    
+    // Select the new brush
+    this.setBrush(brushId);
+    
+    // Reset form
+    document.getElementById('customBrushName').value = '';
+    
+    this.app.showNotification(`Brush "${name}" saved!`);
+  }
+  
+  addBrushToSelect(id, name) {
+    const select = document.getElementById('brushSelect');
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = name;
+    option.className = 'custom-brush-option';
+    select.appendChild(option);
+  }
+  
+  renderCustomBrushesList() {
+    const grid = document.getElementById('customBrushesGrid');
+    grid.innerHTML = '';
+    
+    this.customBrushes.forEach((brush, index) => {
+      const item = document.createElement('div');
+      item.className = 'brush-item';
+      if (this.currentBrush === `custom_${index}`) {
+        item.classList.add('active');
+      }
+      
+      // Create preview canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 60;
+      canvas.height = 60;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw mini preview
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, 60, 60);
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(30, 30, 20, 0, Math.PI * 2);
+      ctx.fill();
+      
+      const name = document.createElement('span');
+      name.textContent = brush.name;
+      
+      item.appendChild(canvas);
+      item.appendChild(name);
+      
+      item.addEventListener('click', () => {
+        this.setBrush(`custom_${index}`);
+        document.getElementById('customBrushModal').classList.remove('active');
+      });
+      
+      grid.appendChild(item);
+    });
+    
+    if (this.customBrushes.length === 0) {
+      grid.innerHTML = '<p style="color: #666; grid-column: 1/-1; text-align: center;">No custom brushes yet. Create one above!</p>';
+    }
+  }
+  
+  setBrush(brushId) {
+    if (!this.brushes[brushId]) {
+      console.error('Brush not found:', brushId);
+      return;
+    }
+    
+    this.currentBrush = brushId;
+    document.getElementById('brushSelect').value = brushId;
+    
+    const brush = this.brushes[brushId];
+    this.app.showNotification(`Brush: ${brush.name}`);
+  }
+  
+  testBrush() {
+    // Close modal and let user test on main canvas
+    document.getElementById('customBrushModal').classList.remove('active');
+    this.app.showNotification('Test your brush on the canvas!');
+  }
+  
+  getCurrentBrush() {
+    return this.brushes[this.currentBrush] || this.brushes.round;
+  }
+  
+  // Main drawing method - called by DrawingApp
+  draw(ctx, x, y, pressure, size, color, opacity) {
+    const brush = this.getCurrentBrush();
+    const brushSize = size * (brush.minSize / 100 + pressure * (1 - brush.minSize / 100));
+    const halfSize = brushSize / 2;
+    
+    ctx.globalAlpha = opacity;
+    
+    switch (brush.type) {
+      case 'round':
+        this.drawRoundBrush(ctx, x, y, halfSize, color, brush.hardness);
+        break;
+      case 'square':
+        this.drawSquareBrush(ctx, x, y, halfSize, color, brush.hardness);
+        break;
+      case 'spray':
+        this.drawSprayBrush(ctx, x, y, halfSize, color);
+        break;
+      case 'texture':
+        this.drawTextureBrush(ctx, x, y, halfSize, color, brush.texture);
+        break;
+      default:
+        this.drawRoundBrush(ctx, x, y, halfSize, color, brush.hardness);
+    }
+    
+    ctx.globalAlpha = 1;
+  }
+  
+  drawRoundBrush(ctx, x, y, radius, color, hardness) {
+    if (hardness >= 90) {
+      // Hard edge
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Soft edge with gradient
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(hardness / 100, color);
+      gradient.addColorStop(1, color.replace(/[^,]+\)/, '0)'));
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  
+  drawSquareBrush(ctx, x, y, halfSize, color, hardness) {
+    if (hardness >= 90) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
+    } else {
+      // Soft square using shadow
+      ctx.save();
+      ctx.shadowColor = color;
+      ctx.shadowBlur = (100 - hardness) / 5;
+      ctx.fillStyle = color;
+      ctx.fillRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
+      ctx.restore();
+    }
+  }
+  
+  drawSprayBrush(ctx, x, y, radius, color) {
+    const particleCount = Math.max(10, Math.floor(radius * 2));
+    ctx.fillStyle = color;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.random() * radius;
+      const px = x + Math.cos(angle) * dist;
+      const py = y + Math.sin(angle) * dist;
+      const size = Math.random() * 2 + 0.5;
+      
+      ctx.beginPath();
+      ctx.arc(px, py, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  
+  drawTextureBrush(ctx, x, y, radius, color, textureType) {
+    // Draw base circle
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Add texture
+    if (textureType) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.translate(x, y);
+      
+      switch (textureType) {
+        case 'noise':
+          for (let i = 0; i < 30; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * radius;
+            ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.3})`;
+            ctx.fillRect(Math.cos(angle) * dist, Math.sin(angle) * dist, 2, 2);
+          }
+          break;
+        case 'grain':
+          for (let i = 0; i < 50; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * radius;
+            ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.2})`;
+            ctx.fillRect(Math.cos(angle) * dist, Math.sin(angle) * dist, 1, 1);
+          }
+          break;
+      }
+      
+      ctx.restore();
+    }
+  }
+}
+
 class DrawingApp {
   constructor() {
     this.canvas = document.getElementById('drawingCanvas');
@@ -304,8 +837,9 @@ class DrawingApp {
     // Canvas background
     this.backgroundColor = '#ffffff';
     
-    // Initialize shortcut manager
+    // Initialize managers
     this.shortcutManager = new ShortcutManager(this);
+    this.brushManager = new BrushManager(this);
     
     this.init();
   }
@@ -501,21 +1035,16 @@ class DrawingApp {
     this.ctx.beginPath();
     this.ctx.moveTo(x, y);
     
-    // Draw a single dot if it's just a click
+    // Use brush manager for drawing
     const size = this.usePressure 
       ? this.brushSize * (0.2 + pressure * 0.8) 
       : this.brushSize;
     
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
-    this.ctx.lineWidth = size;
-    this.ctx.strokeStyle = this.hexToRgba(this.color, this.opacity);
+    this.brushManager.draw(this.ctx, x, y, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
     
-    // Draw initial dot
-    this.ctx.lineTo(x, y);
-    this.ctx.stroke();
-    this.ctx.beginPath();
-    this.ctx.moveTo(x, y);
+    // Store last draw point for spacing calculations
+    this.brushManager.lastDrawPoint = { x, y };
+    this.brushManager.lastDrawTime = Date.now();
   }
   
   draw(x, y, pressure) {
@@ -523,11 +1052,26 @@ class DrawingApp {
       ? this.brushSize * (0.2 + pressure * 0.8) 
       : this.brushSize;
     
-    this.ctx.lineWidth = size;
-    this.ctx.lineTo(x, y);
-    this.ctx.stroke();
-    this.ctx.beginPath();
-    this.ctx.moveTo(x, y);
+    const brush = this.brushManager.getCurrentBrush();
+    const spacing = (brush.spacing / 100) * size;
+    
+    // Interpolate points based on brush spacing
+    if (this.brushManager.lastDrawPoint) {
+      const lastX = this.brushManager.lastDrawPoint.x;
+      const lastY = this.brushManager.lastDrawPoint.y;
+      const dist = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
+      
+      if (dist >= spacing) {
+        const steps = Math.floor(dist / spacing);
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          const ix = lastX + (x - lastX) * t;
+          const iy = lastY + (y - lastY) * t;
+          this.brushManager.draw(this.ctx, ix, iy, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
+        }
+        this.brushManager.lastDrawPoint = { x, y };
+      }
+    }
   }
   
   updateBrushSettings() {
@@ -672,27 +1216,30 @@ class DrawingApp {
       }
       
       if (stroke.points && stroke.points.length > 0) {
-        this.ctx.beginPath();
-        this.ctx.lineCap = 'round';
-        this.ctx.lineJoin = 'round';
-        this.ctx.strokeStyle = this.hexToRgba(stroke.color, stroke.opacity);
+        // Use brush manager for redrawing
+        let lastPoint = null;
         
-        const first = stroke.points[0];
-        this.ctx.moveTo(first.x, first.y);
-        
-        for (let i = 1; i < stroke.points.length; i++) {
-          const point = stroke.points[i];
-          // Use stored size and pressure for this specific stroke
+        for (const point of stroke.points) {
           const baseSize = stroke.isEraser ? stroke.size / 2 : stroke.size;
           const size = stroke.usePressure 
             ? baseSize * (0.2 + point.pressure * 0.8) 
             : baseSize;
           
-          this.ctx.lineWidth = size;
-          this.ctx.lineTo(point.x, point.y);
-          this.ctx.stroke();
-          this.ctx.beginPath();
-          this.ctx.moveTo(point.x, point.y);
+          const color = this.hexToRgba(stroke.color, stroke.opacity);
+          
+          if (lastPoint) {
+            const brush = this.brushManager.getCurrentBrush();
+            const spacing = (brush.spacing / 100) * size;
+            const dist = Math.sqrt((point.x - lastPoint.x) ** 2 + (point.y - lastPoint.y) ** 2);
+            
+            if (dist >= spacing || !lastPoint) {
+              this.brushManager.draw(this.ctx, point.x, point.y, point.pressure, size, color, stroke.opacity);
+              lastPoint = point;
+            }
+          } else {
+            this.brushManager.draw(this.ctx, point.x, point.y, point.pressure, size, color, stroke.opacity);
+            lastPoint = point;
+          }
         }
       }
     }

@@ -47,6 +47,24 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
 
+      - name: install dependencies (macos only)
+        if: contains(matrix.platform, 'macos')
+        run: |
+          # Create icon.icns from icon.png for macOS
+          mkdir -p src-tauri/icons/icon.iconset
+          sips -z 16 16     src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_16x16.png
+          sips -z 32 32     src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_16x16@2x.png
+          sips -z 32 32     src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_32x32.png
+          sips -z 64 64     src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_32x32@2x.png
+          sips -z 128 128   src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_128x128.png
+          sips -z 256 256   src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_128x128@2x.png
+          sips -z 256 256   src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_256x256.png
+          sips -z 512 512   src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_256x256@2x.png
+          sips -z 512 512   src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_512x512.png
+          sips -z 1024 1024 src-tauri/icons/icon.png --out src-tauri/icons/icon.iconset/icon_512x512@2x.png
+          iconutil -c icns src-tauri/icons/icon.iconset -o src-tauri/icons/icon.icns
+          rm -rf src-tauri/icons/icon.iconset
+
       - name: install frontend dependencies
         run: npm install
 
@@ -54,8 +72,8 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD are optional
+          # If not set, builds will be unsigned (which is fine for open source)
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'PenPal Draw ${{ github.ref_name }}'

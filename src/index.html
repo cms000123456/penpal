@@ -113,6 +113,10 @@
       <div class="tool-section">
         <button id="shortcutsBtn" title="Configure Shortcut Keys">⌨️ Keys</button>
       </div>
+      
+      <div class="tool-section">
+        <button id="helpBtn" title="Help & Documentation">❓ Help</button>
+      </div>
     </div>
     
     <!-- Canvas Container -->
@@ -201,6 +205,300 @@
               <!-- Custom brushes will appear here -->
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+      <div class="modal-content help-modal-content">
+        <div class="modal-header">
+          <h2>📖 PenPal Draw Help</h2>
+          <button class="close-btn" id="closeHelp">&times;</button>
+        </div>
+        <div class="help-container">
+          <aside class="help-sidebar">
+            <div class="help-search">
+              <input type="text" id="helpSearch" placeholder="Search help...">
+            </div>
+            <nav class="help-nav">
+              <a href="#help-quickstart" class="help-link active">🚀 Quick Start</a>
+              <a href="#help-tools" class="help-link">🖌️ Tools & Brushes</a>
+              <a href="#help-layers" class="help-link">📑 Layers (Coming Soon)</a>
+              <a href="#help-shortcuts" class="help-link">⌨️ Keyboard Shortcuts</a>
+              <a href="#help-xppen" class="help-link">🎨 XPPen Setup</a>
+              <a href="#help-custombrushes" class="help-link">✨ Custom Brushes</a>
+              <a href="#help-blendmodes" class="help-link">🔀 Blend Modes</a>
+              <a href="#help-troubleshooting" class="help-link">🔧 Troubleshooting</a>
+              <a href="#help-tips" class="help-link">💡 Tips & Tricks</a>
+            </nav>
+          </aside>
+          <main class="help-content">
+            <section id="help-quickstart" class="help-section active">
+              <h3>🚀 Quick Start</h3>
+              <p>Welcome to <strong>PenPal Draw</strong> - a drawing app designed for your XPPen Artist 15.6 Pro V2!</p>
+              
+              <h4>Getting Started (3 Steps)</h4>
+              <ol>
+                <li><strong>Connect your tablet</strong> - Make sure your XPPen is connected and drivers are installed</li>
+                <li><strong>Select your display</strong> - Use the "Display" dropdown to move the app to your pen display</li>
+                <li><strong>Start drawing!</strong> - Pick a brush and draw on the canvas</li>
+              </ol>
+              
+              <h4>Basic Controls</h4>
+              <ul>
+                <li><strong>Left click + drag</strong> - Draw with current tool</li>
+                <li><strong>Pressure</strong> - Press harder for thicker/opaque strokes (with compatible pens)</li>
+                <li><strong>Mouse wheel</strong> - Adjust brush size (when implemented)</li>
+                <li><strong>Ctrl + Z</strong> - Undo</li>
+                <li><strong>Ctrl + Y</strong> - Redo</li>
+                <li><strong>Ctrl + S</strong> - Save image</li>
+              </ul>
+              
+              <div class="help-tip">
+                <strong>💡 Tip:</strong> Click the <strong>Fullscreen</strong> button for the best drawing experience on your XPPen!
+              </div>
+            </section>
+            
+            <section id="help-tools" class="help-section">
+              <h3>🖌️ Tools & Brushes</h3>
+              
+              <h4>Brushes</h4>
+              <div class="help-tool-grid">
+                <div class="help-tool-item">
+                  <strong>Round</strong> - Standard circular brush, good for general drawing
+                </div>
+                <div class="help-tool-item">
+                  <strong>Square</strong> - Hard-edged square, good for geometric shapes
+                </div>
+                <div class="help-tool-item">
+                  <strong>Soft</strong> - Soft-edged circular, good for shading
+                </div>
+                <div class="help-tool-item">
+                  <strong>Pencil</strong> - Textured stroke, simulates real pencil
+                </div>
+                <div class="help-tool-item">
+                  <strong>Marker</strong> - Broad, marker-like strokes
+                </div>
+                <div class="help-tool-item">
+                  <strong>Spray</strong> - Airbrush effect with particles
+                </div>
+                <div class="help-tool-item">
+                  <strong>Charcoal</strong> - Grainy texture for sketching
+                </div>
+              </div>
+              
+              <h4>Tools</h4>
+              <div class="help-tool-grid">
+                <div class="help-tool-item">
+                  <strong>Eraser</strong> - Remove paint. Modes: Pixel (hard), Brush (soft), Block (square)
+                </div>
+                <div class="help-tool-item">
+                  <strong>Smudge/Blend</strong> - Blend existing colors together. Adjust strength with slider
+                </div>
+                <div class="help-tool-item">
+                  <strong>Blur</strong> - Soften areas of your image
+                </div>
+                <div class="help-tool-item">
+                  <strong>Dodge</strong> - Lighten areas (like photography dodge tool)
+                </div>
+                <div class="help-tool-item">
+                  <strong>Burn</strong> - Darken areas (like photography burn tool)
+                </div>
+              </div>
+              
+              <h4>Brush Settings</h4>
+              <ul>
+                <li><strong>Size</strong> - Overall brush diameter (1-100)</li>
+                <li><strong>Opacity</strong> - Transparency of strokes (1-100%)</li>
+                <li><strong>Pressure</strong> - Enable/disable pressure sensitivity</li>
+                <li><strong>Hardness</strong> - Edge softness (0-100%)</li>
+                <li><strong>Spacing</strong> - Distance between brush stamps</li>
+              </ul>
+            </section>
+            
+            <section id="help-layers" class="help-section">
+              <h3>📑 Layers</h3>
+              <p><em>Layer support is coming in a future update!</em></p>
+              <p>Currently, PenPal Draw works with a single canvas. For complex artwork, we recommend:</p>
+              <ul>
+                <li>Saving versions frequently</li>
+                <li>Using the undo/redo system</li>
+                <li>Planning your drawing from background to foreground</li>
+              </ul>
+            </section>
+            
+            <section id="help-shortcuts" class="help-section">
+              <h3>⌨️ Keyboard Shortcuts</h3>
+              
+              <h4>General</h4>
+              <table class="help-table">
+                <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo</td></tr>
+                <tr><td><kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>Redo</td></tr>
+                <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Redo (alternate)</td></tr>
+                <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save image</td></tr>
+                <tr><td><kbd>E</kbd></td><td>Toggle eraser mode</td></tr>
+                <tr><td><kbd>[</kbd></td><td>Decrease brush size</td></tr>
+                <tr><td><kbd>]</kbd></td><td>Increase brush size</td></tr>
+              </table>
+              
+              <h4>XPPen Shortcut Keys</h4>
+              <p>Configure your XPPen's 8 shortcut keys in the <strong>⌨️ Keys</strong> menu. Recommended setup:</p>
+              <table class="help-table">
+                <tr><td><strong>K1</strong></td><td>Brush Medium</td></tr>
+                <tr><td><strong>K2</strong></td><td>Brush Large</td></tr>
+                <tr><td><strong>K3</strong></td><td>Color: Black</td></tr>
+                <tr><td><strong>K4</strong></td><td>Color: White</td></tr>
+                <tr><td><strong>K5</strong></td><td>Undo</td></tr>
+                <tr><td><strong>K6</strong></td><td>Toggle Eraser</td></tr>
+                <tr><td><strong>K7</strong></td><td>Clear Canvas</td></tr>
+                <tr><td><strong>K8</strong></td><td>Save</td></tr>
+              </table>
+            </section>
+            
+            <section id="help-xppen" class="help-section">
+              <h3>🎨 XPPen Setup</h3>
+              
+              <h4>Required Setup</h4>
+              <ol>
+                <li>Install XPPen drivers from <a href="https://www.xp-pen.com/download" target="_blank">xp-pen.com/download</a></li>
+                <li>Connect your Artist 15.6 Pro V2 via USB and HDMI</li>
+                <li>Open XPPen Tablet software</li>
+                <li>Enable <strong>Windows Ink</strong> in pen settings</li>
+              </ol>
+              
+              <h4>Configure Shortcut Keys</h4>
+              <ol>
+                <li>Open XPPen Tablet software</li>
+                <li>Go to <strong>Shortcut Keys</strong> tab</li>
+                <li>Set each key to send keyboard shortcuts (e.g., Ctrl+F1 for K1)</li>
+                <li>In PenPal Draw, click <strong>⌨️ Keys</strong> and map the shortcuts</li>
+              </ol>
+              
+              <h4>Troubleshooting Pressure</h4>
+              <ul>
+                <li>Ensure "Pressure" checkbox is enabled in toolbar</li>
+                <li>Check that Windows Ink is enabled in XPPen drivers</li>
+                <li>Try restarting the app after driver changes</li>
+                <li>Test with the pressure indicator in the toolbar</li>
+              </ul>
+            </section>
+            
+            <section id="help-custombrushes" class="help-section">
+              <h3>✨ Custom Brushes</h3>
+              
+              <h4>Creating a Custom Brush</h4>
+              <ol>
+                <li>Click the <strong>+</strong> button next to the tool selector</li>
+                <li>Adjust the parameters:</li>
+              </ol>
+              <ul>
+                <li><strong>Type</strong> - Base shape (round, square, soft, textured, pattern)</li>
+                <li><strong>Hardness</strong> - Edge softness (0% = very soft, 100% = hard edge)</li>
+                <li><strong>Spacing</strong> - Distance between brush stamps (lower = smoother)</li>
+                <li><strong>Angle</strong> - Rotation of brush tip</li>
+                <li><strong>Roundness</strong> - Compress circle to ellipse</li>
+                <li><strong>Min Size</strong> - Size when pressure is minimum</li>
+                <li><strong>Texture</strong> - Add noise, grain, dots, or lines</li>
+              </ul>
+              <ol start="3">
+                <li>Enter a name for your brush</li>
+                <li>Click <strong>Save Brush</strong></li>
+              </ol>
+              
+              <div class="help-tip">
+                <strong>💡 Tip:</strong> Custom brushes are saved automatically and persist between sessions!
+              </div>
+            </section>
+            
+            <section id="help-blendmodes" class="help-section">
+              <h3>🔀 Blend Modes</h3>
+              <p>Blend modes control how brush strokes interact with existing paint.</p>
+              
+              <table class="help-table">
+                <tr><td><strong>Normal</strong></td><td>Standard painting, no blending</td></tr>
+                <tr><td><strong>Multiply</strong></td><td>Darkens - good for shadows</td></tr>
+                <tr><td><strong>Screen</strong></td><td>Lightens - good for highlights</td></tr>
+                <tr><td><strong>Overlay</strong></td><td>Enhances contrast</td></tr>
+                <tr><td><strong>Soft Light</strong></td><td>Subtle lighting effect</td></tr>
+                <tr><td><strong>Hard Light</strong></td><td>Strong lighting effect</td></tr>
+                <tr><td><strong>Color Dodge</strong></td><td>Brightens aggressively</td></tr>
+                <tr><td><strong>Color Burn</strong></td><td>Darkens aggressively</td></tr>
+                <tr><td><strong>Difference</strong></td><td>Inverts colors</td></tr>
+                <tr><td><strong>Exclusion</strong></td><td>Similar to difference but softer</td></tr>
+              </table>
+            </section>
+            
+            <section id="help-troubleshooting" class="help-section">
+              <h3>🔧 Troubleshooting</h3>
+              
+              <h4>Pressure Not Working</h4>
+              <ul>
+                <li>Check "Pressure" checkbox in toolbar</li>
+                <li>Ensure Windows Ink is enabled in XPPen drivers</li>
+                <li>Restart the app</li>
+                <li>Test with pressure indicator (should show colors)</li>
+              </ul>
+              
+              <h4>App Won't Move to Pen Display</h4>
+              <ul>
+                <li>Ensure XPPen is recognized as a monitor in Windows</li>
+                <li>Manually drag window to pen display</li>
+                <li>Use Fullscreen button once positioned</li>
+              </ul>
+              
+              <h4>Lag or Stuttering</h4>
+              <ul>
+                <li>Reduce brush size</li>
+                <li>Close other applications</li>
+                <li>Check CPU/GPU usage</li>
+                <li>Try simpler brushes (Round instead of Charcoal)</li>
+              </ul>
+              
+              <h4>Smudge/Blur Not Working</h4>
+              <ul>
+                <li>These tools only work on existing paint</li>
+                <li>Draw something first, then use smudge/blur</li>
+                <li>Try increasing the strength slider</li>
+              </ul>
+            </section>
+            
+            <section id="help-tips" class="help-section">
+              <h3>💡 Tips & Tricks</h3>
+              
+              <div class="help-tip-list">
+                <div class="help-tip-item">
+                  <strong>Quick Color Pick:</strong> Use the color picker tool (shortcut key) to sample colors from your canvas
+                </div>
+                <div class="help-tip-item">
+                  <strong>Pressure Practice:</strong> The pressure indicator in the toolbar helps you learn pen control - yellow (light), green (medium), red (heavy)
+                </div>
+                <div class="help-tip-item">
+                  <strong>Smooth Lines:</strong> Lower the spacing value in custom brushes for smoother strokes
+                </div>
+                <div class="help-tip-item">
+                  <strong>Texture Brushes:</strong> Combine textures with low hardness for realistic pencil/charcoal effects
+                </div>
+                <div class="help-tip-item">
+                  <strong>Undo History:</strong> The undo system stores complete stroke data - you can undo/redo freely
+                </div>
+                <div class="help-tip-item">
+                  <strong>Save Versions:</strong> Use Ctrl+S frequently - each save has a timestamp in the filename
+                </div>
+                <div class="help-tip-item">
+                  <strong>Fullscreen Drawing:</strong> Use Fullscreen mode for the most immersive experience
+                </div>
+                <div class="help-tip-item">
+                  <strong>Web Testing:</strong> Run run-web.bat to test in browser before building desktop app
+                </div>
+              </div>
+            </section>
+            
+            <div class="help-footer">
+              <p>PenPal Draw v0.2.0 | Built for XPPen Artist 15.6 Pro V2</p>
+              <p><a href="https://github.com/cms000123456/penpal" target="_blank">GitHub Repository</a></p>
+            </div>
+          </main>
         </div>
       </div>
     </div>

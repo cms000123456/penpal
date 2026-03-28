@@ -1789,10 +1789,166 @@ class DrawingApp {
   }
 }
 
+// Help System
+class HelpSystem {
+  constructor() {
+    this.modal = document.getElementById('helpModal');
+    this.searchInput = document.getElementById('helpSearch');
+    this.links = document.querySelectorAll('.help-link');
+    this.sections = document.querySelectorAll('.help-section');
+    
+    this.setupEventListeners();
+  }
+  
+  setupEventListeners() {
+    // Open help button
+    document.getElementById('helpBtn').addEventListener('click', () => {
+      this.open();
+    });
+    
+    // Close button
+    document.getElementById('closeHelp').addEventListener('click', () => {
+      this.close();
+    });
+    
+    // Close on backdrop click
+    this.modal.addEventListener('click', (e) => {
+      if (e.target === this.modal) this.close();
+    });
+    
+    // Navigation links
+    this.links.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = link.getAttribute('href').substring(1);
+        this.showSection(target);
+        this.setActiveLink(link);
+      });
+    });
+    
+    // Search functionality
+    this.searchInput.addEventListener('input', () => {
+      this.performSearch(this.searchInput.value);
+    });
+    
+    // Keyboard shortcut for help (F1)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        this.open();
+      }
+      if (e.key === 'Escape' && this.modal.classList.contains('active')) {
+        this.close();
+      }
+    });
+  }
+  
+  open() {
+    this.modal.classList.add('active');
+    this.searchInput.focus();
+  }
+  
+  close() {
+    this.modal.classList.remove('active');
+    // Clear search
+    this.searchInput.value = '';
+    this.clearHighlights();
+  }
+  
+  showSection(sectionId) {
+    this.sections.forEach(section => {
+      section.classList.remove('active');
+      if (section.id === sectionId) {
+        section.classList.add('active');
+      }
+    });
+  }
+  
+  setActiveLink(activeLink) {
+    this.links.forEach(link => link.classList.remove('active'));
+    activeLink.classList.add('active');
+  }
+  
+  performSearch(query) {
+    if (!query.trim()) {
+      this.clearHighlights();
+      return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    let foundSection = null;
+    
+    // Search through all sections
+    this.sections.forEach(section => {
+      const text = section.textContent.toLowerCase();
+      if (text.includes(lowerQuery)) {
+        if (!foundSection) foundSection = section.id;
+        
+        // Highlight matching text
+        this.highlightText(section, lowerQuery);
+      } else {
+        // Remove highlights if no match
+        this.removeHighlights(section);
+      }
+    });
+    
+    // Show first matching section
+    if (foundSection) {
+      this.showSection(foundSection);
+      // Update active link
+      const activeLink = document.querySelector(`.help-link[href="#${foundSection}"]`);
+      if (activeLink) this.setActiveLink(activeLink);
+    }
+  }
+  
+  highlightText(element, query) {
+    // Simple highlight implementation
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    
+    while (walker.nextNode()) {
+      textNodes.push(walker.currentNode);
+    }
+    
+    textNodes.forEach(node => {
+      const text = node.textContent.toLowerCase();
+      if (text.includes(query) && node.parentNode.className !== 'highlight') {
+        const regex = new RegExp(`(${query})`, 'gi');
+        const html = node.textContent.replace(regex, '<span class="highlight">$1</span>');
+        
+        const span = document.createElement('span');
+        span.innerHTML = html;
+        node.parentNode.replaceChild(span, node);
+      }
+    });
+  }
+  
+  removeHighlights(section) {
+    const highlights = section.querySelectorAll('.highlight');
+    highlights.forEach(highlight => {
+      const parent = highlight.parentNode;
+      parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+      parent.normalize();
+    });
+  }
+  
+  clearHighlights() {
+    this.sections.forEach(section => {
+      this.removeHighlights(section);
+    });
+  }
+}
+
 // Initialize the app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   console.log('PenPal Draw initializing...');
   const app = new DrawingApp();
   window.penpalApp = app; // Expose for debugging
+  
+  // Initialize help system
+  const helpSystem = new HelpSystem();
+  window.helpSystem = helpSystem;
+  
   console.log('PenPal Draw ready! Open browser console (F12) for debug info.');
+  console.log('Press F1 for Help');
 });

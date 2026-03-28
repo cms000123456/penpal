@@ -1,5 +1,8 @@
 # PenPal Draw
 
+[![Release](https://github.com/cms000123456/penpal/actions/workflows/release.yml/badge.svg)](https://github.com/cms000123456/penpal/actions/workflows/release.yml)
+[![Test Build](https://github.com/cms000123456/penpal/actions/workflows/test-build.yml/badge.svg)](https://github.com/cms000123456/penpal/actions/workflows/test-build.yml)
+
 A lightweight, cross-platform drawing app designed for the **XPPen Artist 15.6 Pro V2 Pen Display** and other pen tablets.
 
 ## Features
@@ -28,6 +31,18 @@ A lightweight, cross-platform drawing app designed for the **XPPen Artist 15.6 P
 ### Download Pre-built Binary
 
 Check the [Releases](../../releases) page for pre-built binaries.
+
+**Latest Release:** [v0.2.0](../../releases/latest)
+
+| Platform | Download |
+|----------|----------|
+| Windows | `.msi` installer or `.exe` portable |
+| macOS (Intel) | `.dmg` for x64 Macs |
+| macOS (Apple Silicon) | `.dmg` for M1/M2/M3 Macs |
+| Linux | `.deb` package or `.AppImage` portable |
+
+### Auto-Updates
+GitHub Actions automatically builds releases for all platforms when a new tag is pushed!
 
 ### Build from Source
 

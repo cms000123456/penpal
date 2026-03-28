@@ -15,6 +15,7 @@ A lightweight, cross-platform drawing app designed for the **XPPen Artist 15.6 P
 - 🧹 **Eraser Mode** - Toggle with 'E' key or shortcut key
 - 🎨 **Color Picker** - Pick colors from canvas
 - ⌨️ **Keyboard Shortcuts** - Quick access to common actions
+- ❓ **In-App Help** - Comprehensive documentation with search (F1)
 
 ## Requirements
 
@@ -66,6 +67,8 @@ The built app will be in `src-tauri/target/release/bundle/`.
 4. **Select your pen display** from the "Display" dropdown
 5. **Click "Move"** to move the window to your pen display
 6. **Click "Fullscreen"** for the best drawing experience
+
+**Need Help?** Press **F1** or click the **❓ Help** button for comprehensive documentation!
 
 ### Drawing
 

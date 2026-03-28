@@ -75,9 +75,9 @@ The built app will be in `src-tauri/target/release/bundle/`.
 - **Color**: Pick from the color selector
 - **Opacity**: Adjust transparency (1-100%)
 
-### Brushes
+### Tools
 
-Select from preset brushes:
+**Brushes:**
 - **Round** - Standard circular brush
 - **Square** - Hard-edged square brush
 - **Soft** - Soft-edged circular brush
@@ -86,9 +86,30 @@ Select from preset brushes:
 - **Spray** - Airbrush spray effect
 - **Charcoal** - Grainy texture brush
 
+**Tools:**
+- **Eraser** - Three modes: Pixel (hard), Brush (soft), Block (square)
+- **Smudge/Blend** - Blend and smudge existing paint
+- **Blur** - Blur areas of your image
+- **Dodge** - Lighten areas (like photography dodge)
+- **Burn** - Darken areas (like photography burn)
+
+### Blend Modes
+
+Available for brushes:
+- **Normal** - Standard painting
+- **Multiply** - Darken (shadows)
+- **Screen** - Lighten (highlights)
+- **Overlay** - Contrast enhancement
+- **Soft Light** - Subtle lighting
+- **Hard Light** - Strong lighting
+- **Color Dodge** - Brighten
+- **Color Burn** - Darken
+- **Difference** - Invert effect
+- **Exclusion** - Similar to difference, softer
+
 ### Custom Brushes
 
-Click the **+** button next to the brush selector to create custom brushes:
+Click the **+** button next to the tool selector to create custom brushes:
 
 1. **Brush Type** - Choose base shape (round, square, soft, textured, pattern)
 2. **Hardness** - Edge softness (0-100%)

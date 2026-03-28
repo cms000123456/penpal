@@ -1,0 +1,453 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: #1a1a1a;
+}
+
+/* Toolbar Styles */
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 20px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #3d3d3d;
+  color: #fff;
+  flex-wrap: wrap;
+  min-height: 60px;
+}
+
+.tool-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-section label {
+  font-size: 12px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tool-section input[type="range"] {
+  width: 80px;
+  cursor: pointer;
+}
+
+.tool-section input[type="color"] {
+  width: 40px;
+  height: 30px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tool-section input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.tool-section span {
+  font-size: 12px;
+  min-width: 35px;
+  color: #fff;
+}
+
+.tool-section button {
+  padding: 6px 14px;
+  background: #4a4a4a;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+
+.tool-section button:hover {
+  background: #5a5a5a;
+}
+
+.tool-section button:active {
+  background: #3a3a3a;
+}
+
+.monitor-section {
+  border-left: 1px solid #3d3d3d;
+  padding-left: 20px;
+  margin-left: auto;
+}
+
+.monitor-section select {
+  padding: 4px 8px;
+  background: #4a4a4a;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  min-width: 150px;
+}
+
+#pressureIndicator {
+  font-size: 12px;
+  color: #4CAF50;
+  min-width: 90px;
+}
+
+/* Canvas Styles */
+#canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #0f0f0f;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#drawingCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+/* Fullscreen specific styles */
+#app:fullscreen #toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  opacity: 0.9;
+  transition: opacity 0.3s;
+}
+
+#app:fullscreen #toolbar:hover {
+  opacity: 1;
+}
+
+#app:fullscreen #canvas-container {
+  cursor: none;
+}
+
+#app:fullscreen #canvas-container:hover {
+  cursor: crosshair;
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: #2d2d2d;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #3d3d3d;
+}
+
+.modal-header h2 {
+  color: #fff;
+  font-size: 20px;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #3d3d3d;
+  color: #fff;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* Shortcuts Info */
+.shortcuts-info {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #1a1a1a;
+  border-radius: 6px;
+}
+
+.shortcuts-info p {
+  color: #aaa;
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.shortcuts-info p:last-child {
+  margin-bottom: 0;
+}
+
+/* Shortcuts Grid */
+.shortcuts-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.shortcut-item {
+  display: grid;
+  grid-template-columns: 50px 1fr 120px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #1a1a1a;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.shortcut-item:hover {
+  border-color: #4a4a4a;
+}
+
+.shortcut-item.listening {
+  border-color: #4CAF50;
+  background: #1a2f1a;
+}
+
+.key-label {
+  font-weight: bold;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  background: #4a4a4a;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.action-select {
+  padding: 8px 12px;
+  background: #3d3d3d;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.action-select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.key-binding {
+  padding: 8px 12px;
+  background: #3d3d3d;
+  border: 1px dashed #4a4a4a;
+  border-radius: 4px;
+  color: #888;
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.key-binding:hover {
+  background: #4a4a4a;
+  border-color: #666;
+  color: #fff;
+}
+
+.key-binding.bound {
+  background: #2d4a2d;
+  border-color: #4CAF50;
+  border-style: solid;
+  color: #4CAF50;
+}
+
+/* Shortcuts Actions */
+.shortcuts-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.shortcuts-actions button {
+  padding: 10px 20px;
+  background: #4a4a4a;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.shortcuts-actions button:hover {
+  background: #5a5a5a;
+}
+
+/* Shortcuts Presets */
+.shortcuts-presets {
+  padding: 20px;
+  background: #1a1a1a;
+  border-radius: 6px;
+}
+
+.shortcuts-presets h3 {
+  color: #fff;
+  margin: 0 0 15px 0;
+  font-size: 16px;
+}
+
+.shortcuts-presets p {
+  color: #aaa;
+  font-size: 14px;
+  margin: 0 0 15px 0;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.preset-item {
+  background: #2d2d2d;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 13px;
+  color: #ccc;
+}
+
+kbd {
+  background: #4a4a4a;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.preset-note {
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Notification Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(10px); }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  #toolbar {
+    gap: 10px;
+    padding: 8px 12px;
+  }
+  
+  .tool-section {
+    gap: 4px;
+  }
+  
+  .monitor-section {
+    padding-left: 10px;
+    margin-left: 0;
+    border-left: none;
+    width: 100%;
+    margin-top: 5px;
+  }
+  
+  .shortcut-item {
+    grid-template-columns: 40px 1fr 100px;
+    gap: 8px;
+    padding: 10px;
+  }
+  
+  .preset-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .shortcut-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .key-label {
+    width: fit-content;
+  }
+  
+  .preset-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+src-tauri/target/
+
+# Build outputs
+dist/
+build/
+*.exe
+*.msi
+*.dmg
+*.app
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local env files
+.env
+.env.local
+
+# SSH keys (keep private key secure)
+.ssh/deploy_key

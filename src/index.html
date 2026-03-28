@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PenPal Draw</title>
+</head>
+<body>
+  <div id="app">
+    <!-- Toolbar -->
+    <div id="toolbar">
+      <div class="tool-section">
+        <label>Brush Size</label>
+        <input type="range" id="brushSize" min="1" max="100" value="5" />
+        <span id="brushSizeValue">5</span>
+      </div>
+      
+      <div class="tool-section">
+        <label>Color</label>
+        <input type="color" id="colorPicker" value="#000000" />
+      </div>
+      
+      <div class="tool-section">
+        <label>Opacity</label>
+        <input type="range" id="opacity" min="1" max="100" value="100" />
+        <span id="opacityValue">100%</span>
+      </div>
+      
+      <div class="tool-section">
+        <label>Pressure</label>
+        <input type="checkbox" id="pressureToggle" checked />
+      </div>
+      
+      <div class="tool-section">
+        <button id="clearBtn">Clear</button>
+        <button id="undoBtn">Undo</button>
+        <button id="redoBtn">Redo</button>
+      </div>
+      
+      <div class="tool-section">
+        <button id="saveBtn">Save</button>
+      </div>
+      
+      <div class="tool-section monitor-section">
+        <label>Display</label>
+        <select id="monitorSelect"></select>
+        <button id="moveToDisplayBtn">Move</button>
+        <button id="fullscreenBtn">Fullscreen</button>
+      </div>
+      
+      <div class="tool-section">
+        <span id="pressureIndicator">Pressure: 0%</span>
+      </div>
+      
+      <div class="tool-section">
+        <button id="shortcutsBtn" title="Configure Shortcut Keys">⌨️ Keys</button>
+      </div>
+    </div>
+    
+    <!-- Canvas Container -->
+    <div id="canvas-container">
+      <canvas id="drawingCanvas"></canvas>
+    </div>
+    
+    <!-- Shortcut Keys Modal -->
+    <div id="shortcutsModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Shortcut Keys Configuration</h2>
+          <button class="close-btn" id="closeShortcuts">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="shortcuts-info">
+            <p>Configure the 8 shortcut keys on your XPPen Artist 15.6 Pro V2.</p>
+            <p>Press a key below, then press the shortcut key on your tablet to assign.</p>
+          </div>
+          <div class="shortcuts-grid">
+            <div class="shortcut-item" data-key="0">
+              <span class="key-label">K1</span>
+              <select class="action-select">
+                <option value="brush_small">Brush: Small</option>
+                <option value="brush_medium" selected>Brush: Medium</option>
+                <option value="brush_large">Brush: Large</option>
+                <option value="color_black">Color: Black</option>
+                <option value="color_white">Color: White</option>
+                <option value="color_red">Color: Red</option>
+                <option value="color_picker">Color: Pick</option>
+                <option value="undo">Undo</option>
+                <option value="redo">Redo</option>
+                <option value="clear">Clear Canvas</option>
+                <option value="save">Save</option>
+                <option value="eraser">Toggle Eraser</option>
+                <option value="fullscreen">Toggle Fullscreen</option>
+                <option value="none">None</option>
+              </select>
+              <span class="key-binding" data-binding="">Click to bind</span>
+            </div>
+            <div class="shortcut-item" data-key="1">
+              <span class="key-label">K2</span>
+              <select class="action-select">
+                <option value="brush_small">Brush: Small</option>
+                <option value="brush_medium">Brush: Medium</option>
+                <option value="brush_large" selected>Brush: Large</option>
+                <option value="color_black">Color: Black</option>
+                <option value="color_white">Color: White</option>
+                <option value="color_red">Color: Red</option>
+                <option value="color_picker">Color: Pick</option>
+                <option value="undo">Undo</option>
+                <option value="redo">Redo</option>
+                <option value="clear">Clear Canvas</option>
+                <option value="save">Save</option>
+                <option value="eraser">Toggle Eraser</option>
+                <option value="fullscreen">Toggle Fullscreen</option>
+                <option value="none">None</option>
+              </select>
+              <span class="key-binding" data-binding="">Click to bind</span>
+            </div>
+            <div class="shortcut-item" data-key="2">
+              <span class="key-label">K3</span>
+              <select class="action-select">
+                <option value="brush_small">Brush: Small</option>
+                <option value="brush_medium">Brush: Medium</option>
+                <option value="brush_large">Brush: Large</option>
+                <option value="color_black" selected>Color: Black</option>
+                <option value="color_white">Color: White</option>
+                <option value="color_red">Color: Red</option>
+                <option value="color_picker">Color: Pick</option>
+                <option value="undo">Undo</option>
+                <option value="redo">Redo</option>
+                <option value="clear">Clear Canvas</option>
+                <option value="save">Save</option>
+                <option value="eraser">Toggle Eraser</option>
+                <option value="fullscreen">Toggle Fullscreen</option>
+                <option value="none">None</option>
+              </select>
+              <span class="key-binding" data-binding="">Click to bind</span>
+            </div>
+            <div class="shortcut-item" data-key="3">
+              <span class="key-label">K4</span>
+              <select class="action-select">
+                <option value="brush_small">Brush: Small</option>
+                <option value="brush_medium">Brush: Medium</option>
+                <option value="brush_large">Brush: Large</option>
+                <option value="color_black">Color: Black</option>
+                <option value="color_white" selected>Color: White</option>
+                <option value="color_red">Color: Red</option>
+                <option value="color_picker">Color: Pick</option>
+                <option value="undo">Undo</option>
+                <option value="redo">Redo</option>
+                <option value="clear">Clear Canvas</option>
+                <option value="save">Save</option>
+                <option value="eraser">Toggle Eraser</option>
+                <option value="fullscreen">Toggle Fullscreen</option>
+                <option value="none">None</option>
+              </select>
+              <span class="key-binding" data-binding="">Click to bind</span>
+            </div>
+            <div class="shortcut-item" data-key="4">
+              <span class="key-label">K5</span>
+              <select class="action-select">
+                <option value="brush_small">Brush: Small</option>
+                <option value="brush_medium">Brush: Medium</option>
+                <option value="brush_large">Brush: Large</option>
+                <option value="color_black">Color: Black</option>
+                <option value="color_white">Color: White</option>
+                <option value="color_red" selected>Color: Red</option>
+                <option value="color_picker">Color: Pick</option>
+                <option value="undo" selected>Undo</option>
+                <option value="redo">Redo</option>
+                <option value="clear">Clear Canvas</option>
+                <option value="save">Save</option>
+                <option value="eraser">Toggle Eraser</option>
+                <option value="fullscreen">Toggle Fullscreen</option>
+                <option value="none">None</option>
+              </select>
+              <span class="key-binding" data-binding="">Click to bind</span>
+            </div>
+            <div class="shortcut-item" data-key="5">
+              <span class="key-label">K6</span>
+              <select class="action-select">
+                <option value="brush_small">Brush: Small</option>
+                <option value="brush_medium">Brush: Medium</option>
+                <option value="brush_large">Brush: Large</option>
+                <option value="color_black">Color: Black</option>
+                <option value="color_white">Color: White</option>
+                <option value="color_red">Color: Red</option>
+                <option value="color_picker">Color: Pick</option>
+                <option value="undo">Undo</option>
+                <option value="redo" selected>Redo</option>
+                <option value="clear">Clear Canvas</option>
+                <option value="save">Save</option>
+                <option value="eraser" selected>Toggle Eraser</option>
+                <option value="fullscreen">Toggle Fullscreen</option>
+                <option value="none">None</option>
+              </select>
+              <span class="key-binding" data-binding="">Click to bind</span>
+            </div>
+            <div class="shortcut-item" data-key="6">
+              <span class="key-label">K7</span>
+              <select class="action-select">
+                <option value="brush_small">Brush: Small</option>
+                <option value="brush_medium">Brush: Medium</option>
+                <option value="brush_large">Brush: Large</option>
+                <option value="color_black">Color: Black</option>
+                <option value="color_white">Color: White</option>
+                <option value="color_red">Color: Red</option>
+                <option value="color_picker">Color: Pick</option>
+                <option value="undo">Undo</option>
+                <option value="redo">Redo</option>
+                <option value="clear" selected>Clear Canvas</option>
+                <option value="save">Save</option>
+                <option value="eraser">Toggle Eraser</option>
+                <option value="fullscreen">Toggle Fullscreen</option>
+                <option value="none">None</option>
+              </select>
+              <span class="key-binding" data-binding="">Click to bind</span>
+            </div>
+            <div class="shortcut-item" data-key="7">
+              <span class="key-label">K8</span>
+              <select class="action-select">
+                <option value="brush_small">Brush: Small</option>
+                <option value="brush_medium">Brush: Medium</option>
+                <option value="brush_large">Brush: Large</option>
+                <option value="color_black">Color: Black</option>
+                <option value="color_white">Color: White</option>
+                <option value="color_red">Color: Red</option>
+                <option value="color_picker">Color: Pick</option>
+                <option value="undo">Undo</option>
+                <option value="redo">Redo</option>
+                <option value="clear">Clear Canvas</option>
+                <option value="save" selected>Save</option>
+                <option value="eraser">Toggle Eraser</option>
+                <option value="fullscreen">Toggle Fullscreen</option>
+                <option value="none">None</option>
+              </select>
+              <span class="key-binding" data-binding="">Click to bind</span>
+            </div>
+          </div>
+          <div class="shortcuts-actions">
+            <button id="resetShortcuts">Reset to Default</button>
+            <button id="autoDetectShortcuts">Auto-Detect XPPen Keys</button>
+          </div>
+          <div class="shortcuts-presets">
+            <h3>XPPen Preset</h3>
+            <p>Set your XPPen tablet keys to send these shortcuts:</p>
+            <div class="preset-grid">
+              <div class="preset-item"><kbd>Ctrl</kbd> + <kbd>F1</kbd> → K1</div>
+              <div class="preset-item"><kbd>Ctrl</kbd> + <kbd>F2</kbd> → K2</div>
+              <div class="preset-item"><kbd>Ctrl</kbd> + <kbd>F3</kbd> → K3</div>
+              <div class="preset-item"><kbd>Ctrl</kbd> + <kbd>F4</kbd> → K4</div>
+              <div class="preset-item"><kbd>Ctrl</kbd> + <kbd>F5</kbd> → K5</div>
+              <div class="preset-item"><kbd>Ctrl</kbd> + <kbd>F6</kbd> → K6</div>
+              <div class="preset-item"><kbd>Ctrl</kbd> + <kbd>F7</kbd> → K7</div>
+              <div class="preset-item"><kbd>Ctrl</kbd> + <kbd>F8</kbd> → K8</div>
+            </div>
+            <p class="preset-note">Configure these in your XPPen Tablet software.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module" src="main.js"></script>
+</body>
+</html>

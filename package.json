@@ -1,6 +1,6 @@
 {
   "name": "penpal-draw",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "A drawing app for XPPen Artist 15.6 Pro V2",
   "scripts": {
     "tauri": "tauri",

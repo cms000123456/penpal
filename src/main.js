@@ -1551,9 +1551,10 @@ class DrawingApp {
     this.currentStroke = [];
     this.strokes = [];
     this.redoStack = [];
+    this.pendingUndoEntry = null;
     
     // Memory management limits
-    this.MAX_STROKES = 1000; // Limit undo history to prevent memory issues
+    this.MAX_STROKES = 50; // Limit undo history (each entry has 2 snapshots)
     
     // Brush settings
     this.brushSize = 5;
@@ -1713,10 +1714,71 @@ class DrawingApp {
     this.currentPressure = pressure;
     this.currentStroke.push({ x, y, pressure, isEraser: this.isEraser });
     
+    // Save layer state for undo BEFORE drawing
+    this.saveLayerStateForUndo();
+    
     this.updatePressureIndicator(pressure);
     this.startStroke(x, y, pressure);
     
     console.log('Pointer down:', e.pointerType, 'at', x, y, 'pressure:', pressure);
+  }
+  
+  saveLayerStateForUndo() {
+    const activeLayer = this.layerManager.getActiveLayer();
+    if (!activeLayer) return;
+    
+    const layerData = this.layerManager.layerCanvases.get(activeLayer.id);
+    if (!layerData) return;
+    
+    // Save a snapshot of the active layer's canvas (BEFORE state)
+    const beforeSnapshot = document.createElement('canvas');
+    beforeSnapshot.width = layerData.canvas.width;
+    beforeSnapshot.height = layerData.canvas.height;
+    const beforeCtx = beforeSnapshot.getContext('2d');
+    beforeCtx.drawImage(layerData.canvas, 0, 0);
+    
+    // Create the undo entry - after state will be filled when stroke ends
+    const undoEntry = {
+      type: 'layer_snapshot',
+      layerId: activeLayer.id,
+      beforeSnapshot: beforeSnapshot,
+      afterSnapshot: null  // Will be captured when stroke ends
+    };
+    
+    // Store reference to capture after state later
+    this.pendingUndoEntry = undoEntry;
+    
+    // Push to undo stack
+    this.strokes.push(undoEntry);
+    
+    // Manage memory
+    this.manageStrokeHistory();
+  }
+  
+  finalizeUndoEntry() {
+    if (!this.pendingUndoEntry) return;
+    
+    const activeLayer = this.layerManager.getActiveLayer();
+    if (!activeLayer) {
+      this.pendingUndoEntry = null;
+      return;
+    }
+    
+    const layerData = this.layerManager.layerCanvases.get(activeLayer.id);
+    if (!layerData) {
+      this.pendingUndoEntry = null;
+      return;
+    }
+    
+    // Save the AFTER state
+    const afterSnapshot = document.createElement('canvas');
+    afterSnapshot.width = layerData.canvas.width;
+    afterSnapshot.height = layerData.canvas.height;
+    const afterCtx = afterSnapshot.getContext('2d');
+    afterCtx.drawImage(layerData.canvas, 0, 0);
+    
+    this.pendingUndoEntry.afterSnapshot = afterSnapshot;
+    this.pendingUndoEntry = null;
   }
   
   handlePointerMove(e) {
@@ -1748,28 +1810,20 @@ class DrawingApp {
     
     this.isDrawing = false;
     
-    // Save stroke for undo
+    // Finalize the undo entry with the AFTER state
     if (this.currentStroke.length > 0) {
-      this.strokes.push({
-        points: [...this.currentStroke],
-        color: this.color,
-        size: this.brushSize,
-        opacity: this.isEraser ? 1 : this.opacity,
-        usePressure: this.usePressure,
-        isEraser: this.isEraser
-      });
-      
-      // Manage memory
-      this.manageStrokeHistory();
+      this.finalizeUndoEntry();
+      this.layerManager.renderLayersList();
     }
     
     this.currentStroke = [];
     this.updatePressureIndicator(0);
     
     // End the path
-    this.ctx.beginPath();
+    const layerCtx = this.layerManager.getActiveContext();
+    if (layerCtx) layerCtx.beginPath();
     
-    console.log('Pointer up, stroke saved. Total strokes:', this.strokes.length);
+    console.log('Pointer up. Undo states:', this.strokes.length);
   }
   
   getPointerPosition(e) {
@@ -1960,17 +2014,41 @@ class DrawingApp {
   }
   
   clearCanvas() {
-    // Clear all non-background layers
-    if (this.layerManager) {
-      this.layerManager.layers.forEach(layer => {
-        if (!layer.isBackground) {
-          const { ctx } = this.layerManager.layerCanvases.get(layer.id);
-          ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        }
-      });
-      this.renderAllLayers();
+    if (!this.layerManager) return;
+    
+    // Save state for undo BEFORE clearing
+    const activeLayer = this.layerManager.getActiveLayer();
+    if (activeLayer && !activeLayer.isBackground) {
+      const layerData = this.layerManager.layerCanvases.get(activeLayer.id);
+      if (layerData) {
+        // Save before state
+        const beforeSnapshot = document.createElement('canvas');
+        beforeSnapshot.width = layerData.canvas.width;
+        beforeSnapshot.height = layerData.canvas.height;
+        beforeSnapshot.getContext('2d').drawImage(layerData.canvas, 0, 0);
+        
+        // Clear the layer
+        layerData.ctx.clearRect(0, 0, layerData.canvas.width, layerData.canvas.height);
+        
+        // Save after state (empty canvas)
+        const afterSnapshot = document.createElement('canvas');
+        afterSnapshot.width = layerData.canvas.width;
+        afterSnapshot.height = layerData.canvas.height;
+        
+        // Push to undo stack
+        this.strokes.push({
+          type: 'layer_snapshot',
+          layerId: activeLayer.id,
+          beforeSnapshot: beforeSnapshot,
+          afterSnapshot: afterSnapshot
+        });
+        
+        this.manageStrokeHistory();
+      }
     }
     
+    this.renderAllLayers();
+    this.layerManager.renderLayersList();
     console.log('Canvas cleared');
     this.showNotification('Canvas cleared');
   }
@@ -1991,23 +2069,53 @@ class DrawingApp {
   }
   
   undo() {
-    if (this.strokes.length === 0) return;
+    if (this.strokes.length === 0) {
+      this.showNotification('Nothing to undo');
+      return;
+    }
     
     const lastStroke = this.strokes.pop();
     this.redoStack.push(lastStroke);
     
-    // Redraw all remaining strokes
-    this.redrawCanvas();
-    console.log('Undo performed. Strokes left:', this.strokes.length);
+    // Restore the layer from the BEFORE snapshot
+    if (lastStroke.type === 'layer_snapshot' && lastStroke.beforeSnapshot) {
+      const layerData = this.layerManager.layerCanvases.get(lastStroke.layerId);
+      if (layerData) {
+        layerData.ctx.clearRect(0, 0, layerData.canvas.width, layerData.canvas.height);
+        layerData.ctx.drawImage(lastStroke.beforeSnapshot, 0, 0);
+      }
+    }
+    
+    // Re-render and update UI
+    this.renderAllLayers();
+    this.layerManager.renderLayersList();
+    console.log('Undo performed. States left:', this.strokes.length);
+    this.showNotification('Undo');
   }
   
   redo() {
-    if (this.redoStack.length === 0) return;
+    if (this.redoStack.length === 0) {
+      this.showNotification('Nothing to redo');
+      return;
+    }
     
     const stroke = this.redoStack.pop();
     this.strokes.push(stroke);
-    this.redrawCanvas();
-    console.log('Redo performed. Strokes:', this.strokes.length);
+    
+    // Restore the layer from the AFTER snapshot
+    if (stroke.type === 'layer_snapshot' && stroke.afterSnapshot) {
+      const layerData = this.layerManager.layerCanvases.get(stroke.layerId);
+      if (layerData) {
+        layerData.ctx.clearRect(0, 0, layerData.canvas.width, layerData.canvas.height);
+        layerData.ctx.drawImage(stroke.afterSnapshot, 0, 0);
+      }
+    }
+    
+    // Re-render and update UI
+    this.renderAllLayers();
+    this.layerManager.renderLayersList();
+    console.log('Redo performed. States:', this.strokes.length);
+    this.showNotification('Redo');
   }
   
   redrawCanvas() {

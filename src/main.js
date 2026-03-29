@@ -1215,6 +1215,25 @@ class ToolManager {
       this.sampleBuffer = null;
     }
     
+    // Sync isEraser state with app
+    if (tool.type === 'eraser') {
+      if (!this.app.isEraser) {
+        this.app.isEraser = true;
+        this.app.previousColor = this.app.color;
+        this.app.previousSize = this.app.brushSize;
+      }
+    } else {
+      // If switching from eraser to brush, reset isEraser
+      if (this.app.isEraser) {
+        this.app.isEraser = false;
+        this.app.color = this.app.previousColor;
+        this.app.brushSize = this.app.previousSize;
+        document.getElementById('colorPicker').value = this.app.color;
+        document.getElementById('brushSize').value = this.app.brushSize;
+        document.getElementById('brushSizeValue').textContent = this.app.brushSize;
+      }
+    }
+    
     this.app.showNotification(`Tool: ${tool.name}`);
   }
   
@@ -2247,14 +2266,15 @@ class DrawingApp {
       document.getElementById('colorPicker').value = this.color;
       document.getElementById('brushSize').value = this.brushSize;
       document.getElementById('brushSizeValue').textContent = this.brushSize;
+      // Restore previous tool (round brush by default)
+      this.toolManager.setTool('brush_round');
       this.showNotification('Brush mode');
     } else {
-      // Switch to eraser
+      // Switch to eraser tool
       this.isEraser = true;
       this.previousColor = this.color;
       this.previousSize = this.brushSize;
-      this.color = this.backgroundColor;
-      this.brushSize = Math.max(this.brushSize * 2, 20);
+      this.toolManager.setTool('eraser');
       this.showNotification('Eraser mode');
     }
   }

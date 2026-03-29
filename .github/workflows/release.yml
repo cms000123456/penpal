@@ -44,6 +44,21 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: setup Rust environment
+        shell: bash
+        run: |
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          echo "CARGO_HOME=$HOME/.cargo" >> $GITHUB_ENV
+          echo "RUSTUP_HOME=$HOME/.rustup" >> $GITHUB_ENV
+          rustup target add ${{ matrix.target }} || true
+
+      - name: verify Rust installation
+        shell: bash
+        run: |
+          rustc --version
+          cargo --version
+          rustup show
+
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
@@ -71,8 +86,18 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
+      - name: setup Apple signing (macOS only)
+        if: contains(matrix.platform, 'macos')
+        shell: bash
+        run: |
+          # Disable code signing for CI builds (optional, allows local/unsigned builds)
+          echo "TAURI_SIGNING_PRIVATE_KEY=" >> $GITHUB_ENV
+          echo "TAURI_SIGNING_PRIVATE_KEY_PASSWORD=" >> $GITHUB_ENV
+          # Allow building without a signing identity
+          echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+
       - name: build Tauri app
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v0.4.14
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

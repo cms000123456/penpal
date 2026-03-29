@@ -43,17 +43,28 @@ Built with Tauri (Rust + Web technologies).
    - Dynamic resizing with content preservation
    - Undo/Redo system with stroke history
    - Save as PNG
+   - Load images (creates new layer)
 
-6. **Shortcut Keys (XPPen Tablet)**
+6. **Layer System**
+   - `LayerManager` class manages multiple layers
+   - Each layer has its own canvas for independent drawing
+   - Layer operations: Add, Delete, Merge Down, Reorder (drag & drop)
+   - Opacity control per layer
+   - Visibility toggle per layer
+   - Background layer (locked, white fill)
+   - Double-click to rename layers
+   - Thumbnail previews in layer panel
+
+7. **Shortcut Keys (XPPen Tablet)**
    - `ShortcutManager` class handles key bindings
    - Modal UI for configuration (⌨️ Keys button)
    - Auto-detect mode for quick setup
    - Per-key action assignment
    - Supports combo keys (Ctrl+F1, etc.)
-   - Actions: brush types, sizes, colors, undo/redo, save, eraser, fullscreen
+   - Actions: brush types, sizes, colors, undo/redo, load, save, eraser, fullscreen
    - Settings persist to localStorage
 
-7. **In-App Help System**
+8. **In-App Help System**
    - `HelpSystem` class manages help modal
    - Sidebar navigation with 8 help sections
    - Search functionality with text highlighting
@@ -67,8 +78,8 @@ Built with Tauri (Rust + Web technologies).
 ```
 penpal-draw/
 ├── src/
-│   ├── index.html      # Main UI with toolbar & shortcuts modal
-│   ├── main.js         # DrawingApp + ShortcutManager classes
+│   ├── index.html      # Main UI with toolbar, shortcuts modal, layer panel
+│   ├── main.js         # DrawingApp + ShortcutManager + LayerManager classes
 │   └── styles.css      # Dark theme styling
 ├── src-tauri/
 │   ├── src/main.rs     # Rust backend, monitor management
@@ -114,16 +125,15 @@ Or use `setup.bat` on Windows for one-click build.
 ## Known Limitations
 
 - Undo system stores stroke data in memory (may use RAM for long sessions)
-- No layer support (single canvas)
 - No brush textures (solid circles only)
 - ICNS icon for macOS needs manual conversion
 
 ## Future Enhancements (Ideas)
 
-- Layer support
 - Brush presets (with shortcut key assignments)
-- Import images
 - Export to PSD
+- Layer groups/folders
+- Layer blend modes per layer
 - Touch gesture support (zoom/pan)
 - Brush textures
 - Symmetry tools

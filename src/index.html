@@ -96,8 +96,10 @@
       </div>
       
       <div class="tool-section">
+        <button id="loadBtn">Load</button>
         <button id="saveBtn">Save</button>
       </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
       
       <div class="tool-section monitor-section">
         <label>Display</label>
@@ -122,6 +124,23 @@
     <!-- Canvas Container -->
     <div id="canvas-container">
       <canvas id="drawingCanvas"></canvas>
+      
+      <!-- Layers Panel -->
+      <div id="layersPanel">
+        <div class="layers-header">
+          <span>Layers</span>
+          <div class="layers-actions">
+            <button id="addLayerBtn" title="Add New Layer">+</button>
+            <button id="deleteLayerBtn" title="Delete Layer">🗑️</button>
+            <button id="mergeLayerBtn" title="Merge Down">⮃</button>
+          </div>
+        </div>
+        <div id="layersList"></div>
+        <div class="layer-opacity-section">
+          <label>Opacity: <span id="layerOpacityValue">100%</span></label>
+          <input type="range" id="layerOpacity" min="0" max="100" value="100">
+        </div>
+      </div>
     </div>
     
     <!-- Custom Brush Modal -->
@@ -224,7 +243,7 @@
             <nav class="help-nav">
               <a href="#help-quickstart" class="help-link active">🚀 Quick Start</a>
               <a href="#help-tools" class="help-link">🖌️ Tools & Brushes</a>
-              <a href="#help-layers" class="help-link">📑 Layers (Coming Soon)</a>
+              <a href="#help-layers" class="help-link">📑 Layers</a>
               <a href="#help-shortcuts" class="help-link">⌨️ Keyboard Shortcuts</a>
               <a href="#help-xppen" class="help-link">🎨 XPPen Setup</a>
               <a href="#help-custombrushes" class="help-link">✨ Custom Brushes</a>
@@ -319,13 +338,31 @@
             
             <section id="help-layers" class="help-section">
               <h3>📑 Layers</h3>
-              <p><em>Layer support is coming in a future update!</em></p>
-              <p>Currently, PenPal Draw works with a single canvas. For complex artwork, we recommend:</p>
+              <p>PenPal Draw now supports layers! Layers let you draw on separate transparent sheets that can be stacked, hidden, merged, and reordered.</p>
+              
+              <h4>Layer Panel</h4>
+              <p>The layer panel appears on the right side of the screen. Each layer shows a thumbnail preview of its contents.</p>
+              
+              <h4>Layer Controls</h4>
               <ul>
-                <li>Saving versions frequently</li>
-                <li>Using the undo/redo system</li>
-                <li>Planning your drawing from background to foreground</li>
+                <li><strong>Add (+)</strong> - Create a new empty layer</li>
+                <li><strong>Delete (🗑️)</strong> - Remove the selected layer</li>
+                <li><strong>Merge (⮃)</strong> - Combine selected layer with the one below</li>
+                <li><strong>Opacity slider</strong> - Adjust layer transparency</li>
+                <li><strong>Visibility (eye)</strong> - Show/hide layer</li>
               </ul>
+              
+              <h4>Working with Layers</h4>
+              <ul>
+                <li>Click a layer to select it - new strokes go on the active layer</li>
+                <li>Drag layers to reorder them</li>
+                <li>Double-click layer name to rename</li>
+                <li>Background layer is always at the bottom and filled with white</li>
+              </ul>
+              
+              <div class="help-tip">
+                <strong>💡 Tip:</strong> Use layers to separate sketch, lineart, and coloring for non-destructive editing!
+              </div>
             </section>
             
             <section id="help-shortcuts" class="help-section">
@@ -534,6 +571,7 @@
                 <option value="undo">Undo</option>
                 <option value="redo">Redo</option>
                 <option value="clear">Clear Canvas</option>
+                <option value="load">Load Image</option>
                 <option value="save">Save</option>
                 <option value="eraser">Toggle Eraser</option>
                 <option value="fullscreen">Toggle Fullscreen</option>
@@ -554,6 +592,7 @@
                 <option value="undo">Undo</option>
                 <option value="redo">Redo</option>
                 <option value="clear">Clear Canvas</option>
+                <option value="load">Load Image</option>
                 <option value="save">Save</option>
                 <option value="eraser">Toggle Eraser</option>
                 <option value="fullscreen">Toggle Fullscreen</option>
@@ -574,6 +613,7 @@
                 <option value="undo">Undo</option>
                 <option value="redo">Redo</option>
                 <option value="clear">Clear Canvas</option>
+                <option value="load">Load Image</option>
                 <option value="save">Save</option>
                 <option value="eraser">Toggle Eraser</option>
                 <option value="fullscreen">Toggle Fullscreen</option>
@@ -594,6 +634,7 @@
                 <option value="undo">Undo</option>
                 <option value="redo">Redo</option>
                 <option value="clear">Clear Canvas</option>
+                <option value="load">Load Image</option>
                 <option value="save">Save</option>
                 <option value="eraser">Toggle Eraser</option>
                 <option value="fullscreen">Toggle Fullscreen</option>
@@ -614,6 +655,7 @@
                 <option value="undo" selected>Undo</option>
                 <option value="redo">Redo</option>
                 <option value="clear">Clear Canvas</option>
+                <option value="load">Load Image</option>
                 <option value="save">Save</option>
                 <option value="eraser">Toggle Eraser</option>
                 <option value="fullscreen">Toggle Fullscreen</option>
@@ -634,6 +676,7 @@
                 <option value="undo">Undo</option>
                 <option value="redo" selected>Redo</option>
                 <option value="clear">Clear Canvas</option>
+                <option value="load">Load Image</option>
                 <option value="save">Save</option>
                 <option value="eraser" selected>Toggle Eraser</option>
                 <option value="fullscreen">Toggle Fullscreen</option>
@@ -654,6 +697,7 @@
                 <option value="undo">Undo</option>
                 <option value="redo">Redo</option>
                 <option value="clear" selected>Clear Canvas</option>
+                <option value="load">Load Image</option>
                 <option value="save">Save</option>
                 <option value="eraser">Toggle Eraser</option>
                 <option value="fullscreen">Toggle Fullscreen</option>

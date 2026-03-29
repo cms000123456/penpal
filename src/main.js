@@ -1,5 +1,359 @@
 // PenPal Draw - Main Drawing Application
 
+// Layer Manager Class
+class LayerManager {
+  constructor(app) {
+    this.app = app;
+    this.layers = [];
+    this.activeLayerId = null;
+    this.nextLayerId = 1;
+    this.layerCanvases = new Map();
+    
+    this.init();
+  }
+  
+  init() {
+    // Create background layer (always white, locked)
+    this.addLayer('Background', true);
+    // Create first drawing layer
+    this.addLayer('Layer 1', false);
+    
+    this.setupEventListeners();
+    this.renderLayersList();
+  }
+  
+  setupEventListeners() {
+    document.getElementById('addLayerBtn').addEventListener('click', () => {
+      this.addLayer();
+    });
+    
+    document.getElementById('deleteLayerBtn').addEventListener('click', () => {
+      this.deleteActiveLayer();
+    });
+    
+    document.getElementById('mergeLayerBtn').addEventListener('click', () => {
+      this.mergeDown();
+    });
+    
+    document.getElementById('layerOpacity').addEventListener('input', (e) => {
+      const layer = this.getActiveLayer();
+      if (layer) {
+        layer.opacity = parseInt(e.target.value) / 100;
+        document.getElementById('layerOpacityValue').textContent = e.target.value + '%';
+        this.app.renderAllLayers();
+      }
+    });
+  }
+  
+  addLayer(name = null, isBackground = false) {
+    const id = this.nextLayerId++;
+    const layerName = name || `Layer ${this.layers.filter(l => !l.isBackground).length + 1}`;
+    
+    // Create canvas for this layer
+    const canvas = document.createElement('canvas');
+    canvas.width = this.app.canvas.width;
+    canvas.height = this.app.canvas.height;
+    const ctx = canvas.getContext('2d');
+    
+    // Fill background layer with white
+    if (isBackground) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    this.layerCanvases.set(id, { canvas, ctx });
+    
+    const layer = {
+      id,
+      name: layerName,
+      visible: true,
+      opacity: 1,
+      isBackground,
+      blendMode: 'normal'
+    };
+    
+    // Insert above current active layer, or at end if no active
+    if (this.activeLayerId && !isBackground) {
+      const activeIndex = this.layers.findIndex(l => l.id === this.activeLayerId);
+      this.layers.splice(activeIndex + 1, 0, layer);
+    } else {
+      this.layers.push(layer);
+    }
+    
+    if (!isBackground) {
+      this.setActiveLayer(id);
+    }
+    
+    this.renderLayersList();
+    this.app.renderAllLayers();
+    
+    return layer;
+  }
+  
+  deleteActiveLayer() {
+    const layer = this.getActiveLayer();
+    if (!layer || layer.isBackground) {
+      this.app.showNotification('Cannot delete background layer');
+      return;
+    }
+    
+    const index = this.layers.findIndex(l => l.id === layer.id);
+    this.layerCanvases.delete(layer.id);
+    this.layers.splice(index, 1);
+    
+    // Set new active layer
+    const newActive = this.layers[Math.max(0, index - 1)];
+    this.setActiveLayer(newActive.id);
+    
+    this.renderLayersList();
+    this.app.renderAllLayers();
+  }
+  
+  mergeDown() {
+    const layer = this.getActiveLayer();
+    if (!layer || layer.isBackground) {
+      this.app.showNotification('Cannot merge background layer');
+      return;
+    }
+    
+    const index = this.layers.findIndex(l => l.id === layer.id);
+    if (index === 0) {
+      this.app.showNotification('Nothing to merge with');
+      return;
+    }
+    
+    const belowLayer = this.layers[index - 1];
+    const belowCanvas = this.layerCanvases.get(belowLayer.id);
+    const currentCanvas = this.layerCanvases.get(layer.id);
+    
+    // Draw current layer onto below layer with opacity
+    belowCanvas.ctx.save();
+    belowCanvas.ctx.globalAlpha = layer.opacity;
+    belowCanvas.ctx.drawImage(currentCanvas.canvas, 0, 0);
+    belowCanvas.ctx.restore();
+    
+    // Delete current layer
+    this.layerCanvases.delete(layer.id);
+    this.layers.splice(index, 1);
+    
+    // Set active to the merged layer
+    this.setActiveLayer(belowLayer.id);
+    
+    this.renderLayersList();
+    this.app.renderAllLayers();
+    this.app.showNotification('Layers merged');
+  }
+  
+  setActiveLayer(id) {
+    this.activeLayerId = id;
+    this.renderLayersList();
+    
+    // Update opacity slider
+    const layer = this.getActiveLayer();
+    if (layer) {
+      document.getElementById('layerOpacity').value = Math.round(layer.opacity * 100);
+      document.getElementById('layerOpacityValue').textContent = Math.round(layer.opacity * 100) + '%';
+    }
+  }
+  
+  getActiveLayer() {
+    return this.layers.find(l => l.id === this.activeLayerId);
+  }
+  
+  getActiveContext() {
+    const entry = this.layerCanvases.get(this.activeLayerId);
+    return entry ? entry.ctx : null;
+  }
+  
+  toggleVisibility(id, event) {
+    event.stopPropagation();
+    const layer = this.layers.find(l => l.id === id);
+    if (layer) {
+      layer.visible = !layer.visible;
+      this.renderLayersList();
+      this.app.renderAllLayers();
+    }
+  }
+  
+  moveLayer(fromIndex, toIndex) {
+    const layer = this.layers.splice(fromIndex, 1)[0];
+    this.layers.splice(toIndex, 0, layer);
+    this.renderLayersList();
+    this.app.renderAllLayers();
+  }
+  
+  renderLayersList() {
+    const list = document.getElementById('layersList');
+    list.innerHTML = '';
+    
+    // Show layers in reverse order (top to bottom)
+    [...this.layers].reverse().forEach((layer, reversedIndex) => {
+      const index = this.layers.length - 1 - reversedIndex;
+      const isActive = layer.id === this.activeLayerId;
+      
+      const item = document.createElement('div');
+      item.className = 'layer-item' + (isActive ? ' active' : '');
+      item.draggable = !layer.isBackground;
+      item.dataset.index = index;
+      item.dataset.id = layer.id;
+      
+      // Visibility toggle
+      const visibility = document.createElement('span');
+      visibility.className = 'layer-visibility' + (layer.visible ? '' : ' hidden');
+      visibility.innerHTML = layer.visible ? '👁️' : '🙈';
+      visibility.title = layer.visible ? 'Hide layer' : 'Show layer';
+      visibility.addEventListener('click', (e) => this.toggleVisibility(layer.id, e));
+      
+      // Thumbnail
+      const thumb = document.createElement('canvas');
+      thumb.className = 'layer-thumbnail';
+      thumb.width = 32;
+      thumb.height = 32;
+      const thumbCtx = thumb.getContext('2d');
+      const layerCanvas = this.layerCanvases.get(layer.id).canvas;
+      thumbCtx.drawImage(layerCanvas, 0, 0, 32, 32);
+      
+      // Info
+      const info = document.createElement('div');
+      info.className = 'layer-info';
+      
+      const name = document.createElement('span');
+      name.className = 'layer-name';
+      name.textContent = layer.name;
+      name.title = 'Double-click to rename';
+      name.addEventListener('dblclick', (e) => this.startRename(layer.id, e));
+      
+      const type = document.createElement('span');
+      type.className = 'layer-type';
+      type.textContent = layer.isBackground ? 'Background' : `${Math.round(layer.opacity * 100)}% opacity`;
+      
+      info.appendChild(name);
+      info.appendChild(type);
+      
+      item.appendChild(visibility);
+      item.appendChild(thumb);
+      item.appendChild(info);
+      
+      // Click to select
+      item.addEventListener('click', () => this.setActiveLayer(layer.id));
+      
+      // Drag and drop
+      if (!layer.isBackground) {
+        item.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', index);
+          item.classList.add('dragging');
+        });
+        
+        item.addEventListener('dragend', () => {
+          item.classList.remove('dragging');
+          document.querySelectorAll('.layer-item').forEach(li => li.classList.remove('drag-over'));
+        });
+        
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (!item.classList.contains('dragging')) {
+            item.classList.add('drag-over');
+          }
+        });
+        
+        item.addEventListener('dragleave', () => {
+          item.classList.remove('drag-over');
+        });
+        
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          const toIndex = index;
+          if (fromIndex !== toIndex && !isNaN(fromIndex)) {
+            this.moveLayer(fromIndex, toIndex);
+          }
+        });
+      }
+      
+      list.appendChild(item);
+    });
+    
+    // Update button states
+    const activeLayer = this.getActiveLayer();
+    document.getElementById('deleteLayerBtn').disabled = !activeLayer || activeLayer.isBackground;
+    document.getElementById('mergeLayerBtn').disabled = !activeLayer || activeLayer.isBackground || 
+      this.layers.indexOf(activeLayer) === 0;
+  }
+  
+  startRename(id, event) {
+    const layer = this.layers.find(l => l.id === id);
+    if (!layer || layer.isBackground) return;
+    
+    const nameSpan = event.target;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = layer.name;
+    input.className = 'layer-name editing';
+    
+    const finishRename = () => {
+      const newName = input.value.trim();
+      if (newName) {
+        layer.name = newName;
+      }
+      this.renderLayersList();
+    };
+    
+    input.addEventListener('blur', finishRename);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        finishRename();
+      } else if (e.key === 'Escape') {
+        this.renderLayersList();
+      }
+    });
+    
+    nameSpan.replaceWith(input);
+    input.focus();
+    input.select();
+  }
+  
+  resizeAllLayers(width, height) {
+    this.layerCanvases.forEach(({ canvas, ctx }, id) => {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(canvas, 0, 0);
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const layer = this.layers.find(l => l.id === id);
+      if (layer && layer.isBackground) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+      }
+      ctx.drawImage(tempCanvas, 0, 0);
+    });
+  }
+  
+  loadImageToNewLayer(image) {
+    // Create a new layer for the image
+    const layer = this.addLayer('Image');
+    const { ctx } = this.layerCanvases.get(layer.id);
+    
+    // Calculate scaling to fit canvas while maintaining aspect ratio
+    const scale = Math.min(
+      this.app.canvas.width / image.width,
+      this.app.canvas.height / image.height,
+      1
+    );
+    
+    const x = (this.app.canvas.width - image.width * scale) / 2;
+    const y = (this.app.canvas.height - image.height * scale) / 2;
+    
+    ctx.drawImage(image, x, y, image.width * scale, image.height * scale);
+    
+    this.renderLayersList();
+    this.app.renderAllLayers();
+  }
+}
+
 // Shortcut Keys Configuration
 const DEFAULT_SHORTCUTS = [
   { key: 'K1', action: 'brush_medium', binding: '' },
@@ -9,7 +363,7 @@ const DEFAULT_SHORTCUTS = [
   { key: 'K5', action: 'undo', binding: '' },
   { key: 'K6', action: 'eraser', binding: '' },
   { key: 'K7', action: 'clear', binding: '' },
-  { key: 'K8', action: 'save', binding: '' }
+  { key: 'K8', action: 'load', binding: '' }
 ];
 
 const XPPEN_DEFAULT_BINDINGS = [
@@ -261,6 +615,9 @@ class ShortcutManager {
         break;
       case 'clear':
         this.app.clearCanvas();
+        break;
+      case 'load':
+        this.app.loadImage();
         break;
       case 'save':
         this.app.saveImage();
@@ -948,9 +1305,8 @@ class ToolManager {
   
   drawSmudge(ctx, x, y, radius, tool, pressure) {
     const strength = this.smudgeStrength / 100;
-    const appCtx = this.app.ctx;
     
-    // Get pixel data under the brush
+    // Get pixel data under the brush from the main canvas (which has all layers rendered)
     const diameter = Math.ceil(radius * 2);
     const sx = Math.max(0, Math.floor(x - radius));
     const sy = Math.max(0, Math.floor(y - radius));
@@ -960,8 +1316,11 @@ class ToolManager {
     if (sw <= 0 || sh <= 0) return;
     
     try {
-      // Get current pixels
-      const imageData = appCtx.getImageData(sx, sy, sw, sh);
+      // First render all layers to get current state
+      this.app.renderAllLayers();
+      
+      // Get current pixels from main canvas
+      const imageData = this.app.ctx.getImageData(sx, sy, sw, sh);
       const data = imageData.data;
       
       // Create smudged version by averaging with previous position
@@ -976,8 +1335,8 @@ class ToolManager {
           }
         }
         
-        // Put modified pixels back
-        appCtx.putImageData(imageData, sx, sy);
+        // Put modified pixels to the active layer context
+        ctx.putImageData(imageData, sx, sy);
       }
       
       // Store current pixels for next smudge
@@ -990,8 +1349,10 @@ class ToolManager {
   }
   
   drawBlur(ctx, x, y, radius, tool) {
-    const appCtx = this.app.ctx;
     const blurAmount = Math.ceil(radius / 4);
+    
+    // First render all layers to get current state
+    this.app.renderAllLayers();
     const sx = Math.max(0, Math.floor(x - radius));
     const sy = Math.max(0, Math.floor(y - radius));
     const sw = Math.ceil(radius * 2);
@@ -1001,7 +1362,7 @@ class ToolManager {
     
     try {
       // Simple box blur
-      const imageData = appCtx.getImageData(sx, sy, sw, sh);
+      const imageData = this.app.ctx.getImageData(sx, sy, sw, sh);
       const data = imageData.data;
       const output = new Uint8ClampedArray(data);
       
@@ -1039,15 +1400,17 @@ class ToolManager {
         }
       }
       
-      appCtx.putImageData(new ImageData(output, sw, sh), sx, sy);
+      ctx.putImageData(new ImageData(output, sw, sh), sx, sy);
     } catch (e) {
       console.log('Blur error:', e);
     }
   }
   
   drawDodgeBurn(ctx, x, y, radius, tool, isDodge) {
-    const appCtx = this.app.ctx;
     const exposure = (tool.exposure || 50) / 100;
+    
+    // First render all layers to get current state
+    this.app.renderAllLayers();
     const sx = Math.max(0, Math.floor(x - radius));
     const sy = Math.max(0, Math.floor(y - radius));
     const sw = Math.ceil(radius * 2);
@@ -1056,7 +1419,7 @@ class ToolManager {
     if (sw <= 0 || sh <= 0) return;
     
     try {
-      const imageData = appCtx.getImageData(sx, sy, sw, sh);
+      const imageData = this.app.ctx.getImageData(sx, sy, sw, sh);
       const data = imageData.data;
       
       for (let by = 0; by < sh; by++) {
@@ -1085,7 +1448,7 @@ class ToolManager {
         }
       }
       
-      appCtx.putImageData(imageData, sx, sy);
+      ctx.putImageData(imageData, sx, sy);
     } catch (e) {
       console.log('Dodge/Burn error:', e);
     }
@@ -1213,6 +1576,7 @@ class DrawingApp {
     // Initialize managers
     this.shortcutManager = new ShortcutManager(this);
     this.toolManager = new ToolManager(this);
+    this.layerManager = null; // Will be initialized after canvas setup
     
     this.init();
   }
@@ -1223,8 +1587,8 @@ class DrawingApp {
     this.setupToolbar();
     this.loadMonitors();
     
-    // Set initial canvas background
-    this.fillBackground();
+    // Initialize layer manager after canvas setup
+    this.layerManager = new LayerManager(this);
     
     // Log web mode detection
     if (!window.__TAURI__) {
@@ -1249,28 +1613,53 @@ class DrawingApp {
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
     
-    // Save current canvas content
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = this.canvas.width;
-    tempCanvas.height = this.canvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.drawImage(this.canvas, 0, 0);
+    // Save current canvas content if this is first resize
+    if (this.canvas.width > 0 && this.canvas.height > 0 && !this.layerManager) {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = this.canvas.width;
+      tempCanvas.height = this.canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(this.canvas, 0, 0);
+    }
     
-    // Resize canvas
+    // Resize main canvas
     this.canvas.width = containerWidth;
     this.canvas.height = containerHeight;
     
-    // Restore content or fill background
-    if (tempCanvas.width > 0 && tempCanvas.height > 0) {
-      this.ctx.drawImage(tempCanvas, 0, 0);
-    } else {
-      this.fillBackground();
+    // Resize all layer canvases
+    if (this.layerManager) {
+      this.layerManager.resizeAllLayers(containerWidth, containerHeight);
     }
     
     // Restore brush settings (reset by resize)
     this.updateBrushSettings();
     
+    // Re-render all layers
+    this.renderAllLayers();
+    
     console.log('Canvas resized to:', containerWidth, 'x', containerHeight);
+  }
+  
+  // Render all visible layers to the main canvas
+  renderAllLayers() {
+    // Clear main canvas
+    this.ctx.fillStyle = '#1a1a1a';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    if (!this.layerManager) return;
+    
+    // Draw each visible layer from bottom to top
+    this.layerManager.layers.forEach(layer => {
+      if (!layer.visible) return;
+      
+      const layerData = this.layerManager.layerCanvases.get(layer.id);
+      if (layerData) {
+        this.ctx.save();
+        this.ctx.globalAlpha = layer.opacity;
+        this.ctx.drawImage(layerData.canvas, 0, 0);
+        this.ctx.restore();
+      }
+    });
   }
   
   fillBackground() {
@@ -1408,22 +1797,31 @@ class DrawingApp {
   }
   
   startStroke(x, y, pressure) {
-    this.ctx.beginPath();
-    this.ctx.moveTo(x, y);
+    const layerCtx = this.layerManager.getActiveContext();
+    if (!layerCtx) return;
+    
+    layerCtx.beginPath();
+    layerCtx.moveTo(x, y);
     
     // Use tool manager for drawing
     const size = this.usePressure 
       ? this.brushSize * (0.2 + pressure * 0.8) 
       : this.brushSize;
     
-    this.toolManager.draw(this.ctx, x, y, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
+    this.toolManager.draw(layerCtx, x, y, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
     
     // Store last draw point for spacing calculations
     this.toolManager.lastDrawPoint = { x, y };
     this.toolManager.lastDrawTime = Date.now();
+    
+    // Re-render all layers to show the change
+    this.renderAllLayers();
   }
   
   draw(x, y, pressure) {
+    const layerCtx = this.layerManager.getActiveContext();
+    if (!layerCtx) return;
+    
     const size = this.usePressure 
       ? this.brushSize * (0.2 + pressure * 0.8) 
       : this.brushSize;
@@ -1443,9 +1841,12 @@ class DrawingApp {
           const t = i / steps;
           const ix = lastX + (x - lastX) * t;
           const iy = lastY + (y - lastY) * t;
-          this.toolManager.draw(this.ctx, ix, iy, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
+          this.toolManager.draw(layerCtx, ix, iy, pressure, size, this.hexToRgba(this.color, this.opacity), this.opacity);
         }
         this.toolManager.lastDrawPoint = { x, y };
+        
+        // Re-render all layers to show the change
+        this.renderAllLayers();
       }
     }
   }
@@ -1500,6 +1901,16 @@ class DrawingApp {
       this.redo();
     });
     
+    // Load button
+    document.getElementById('loadBtn').addEventListener('click', () => {
+      this.loadImage();
+    });
+    
+    // File input for loading images
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      this.handleFileLoad(e);
+    });
+    
     // Save button
     document.getElementById('saveBtn').addEventListener('click', () => {
       this.saveImage();
@@ -1549,13 +1960,19 @@ class DrawingApp {
   }
   
   clearCanvas() {
-    // Save current state for undo
-    const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-    this.strokes.push({ type: 'clear', imageData });
+    // Clear all non-background layers
+    if (this.layerManager) {
+      this.layerManager.layers.forEach(layer => {
+        if (!layer.isBackground) {
+          const { ctx } = this.layerManager.layerCanvases.get(layer.id);
+          ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+      });
+      this.renderAllLayers();
+    }
     
-    this.ctx.fillStyle = this.backgroundColor;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     console.log('Canvas cleared');
+    this.showNotification('Canvas cleared');
   }
   
   manageStrokeHistory() {
@@ -1594,54 +2011,49 @@ class DrawingApp {
   }
   
   redrawCanvas() {
-    // Clear and fill background
-    this.ctx.fillStyle = this.backgroundColor;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    
-    // Redraw each stroke
-    for (const stroke of this.strokes) {
-      if (stroke.type === 'clear') {
-        this.ctx.fillStyle = this.backgroundColor;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        continue;
-      }
-      
-      if (stroke.points && stroke.points.length > 0) {
-        // Use brush manager for redrawing
-        let lastPoint = null;
-        
-        for (const point of stroke.points) {
-          const baseSize = stroke.isEraser ? stroke.size / 2 : stroke.size;
-          const size = stroke.usePressure 
-            ? baseSize * (0.2 + point.pressure * 0.8) 
-            : baseSize;
-          
-          const color = this.hexToRgba(stroke.color, stroke.opacity);
-          
-          if (lastPoint) {
-            const tool = this.toolManager.getCurrentTool();
-            const spacing = (tool.spacing / 100) * size;
-            const dist = Math.sqrt((point.x - lastPoint.x) ** 2 + (point.y - lastPoint.y) ** 2);
-            
-            if (dist >= spacing || !lastPoint) {
-              this.toolManager.draw(this.ctx, point.x, point.y, point.pressure, size, color, stroke.opacity);
-              lastPoint = point;
-            }
-          } else {
-            this.toolManager.draw(this.ctx, point.x, point.y, point.pressure, size, color, stroke.opacity);
-            lastPoint = point;
-          }
-        }
-      }
-    }
+    // With layers, we just re-render all layers
+    this.renderAllLayers();
   }
   
   saveImage() {
+    // Render all layers first to ensure we have the latest
+    this.renderAllLayers();
+    
     const link = document.createElement('a');
     link.download = `penpal-draw-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
     link.href = this.canvas.toDataURL('image/png');
     link.click();
     console.log('Image saved');
+    this.showNotification('Image saved!');
+  }
+  
+  loadImage() {
+    const fileInput = document.getElementById('fileInput');
+    fileInput.click();
+  }
+  
+  handleFileLoad(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      this.showNotification('Please select an image file');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        this.layerManager.loadImageToNewLayer(img);
+        this.showNotification('Image loaded to new layer');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset file input
+    event.target.value = '';
   }
   
   hexToRgba(hex, alpha) {
@@ -1700,6 +2112,10 @@ class DrawingApp {
     // One-time click handler
     const pickColor = (e) => {
       const { x, y } = this.getPointerPosition(e);
+      
+      // Render all layers first to get the actual visible color
+      this.renderAllLayers();
+      
       const pixel = this.ctx.getImageData(x, y, 1, 1).data;
       const hex = '#' + [pixel[0], pixel[1], pixel[2]].map(x => x.toString(16).padStart(2, '0')).join('');
       this.setColor(hex);

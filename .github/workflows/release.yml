@@ -33,24 +33,35 @@ jobs:
         with:
           node-version: 22
 
-      - name: install Rust
-        shell: bash
+      - name: install Rust (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
           rustup default stable
           rustup target add ${{ matrix.target }}
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          echo "CARGO_HOME=$HOME/.cargo" >> $GITHUB_ENV
-          echo "RUSTUP_HOME=$HOME/.rustup" >> $GITHUB_ENV
 
-      - name: verify Rust installation
-        shell: bash
+      - name: install Rust (Windows)
+        if: matrix.platform == 'windows-latest'
         run: |
+          curl.exe --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+      - name: setup Rust environment (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           source $HOME/.cargo/env
           rustc --version
           cargo --version
-          rustup show
+
+      - name: setup Rust environment (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: powershell
+        run: |
+          $env:PATH += ";$env:USERPROFILE\.cargo\bin"
+          echo "$env:USERPROFILE\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          rustc --version
+          cargo --version
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
@@ -61,17 +72,17 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
-      - name: build Tauri app (Windows)
-        if: matrix.platform == 'windows-latest'
-        shell: bash
-        run: |
-          source $HOME/.cargo/env
-          npm run tauri build
-
       - name: build Tauri app (Linux)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           source $HOME/.cargo/env
+          npm run tauri build
+
+      - name: build Tauri app (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: powershell
+        run: |
+          $env:PATH += ";$env:USERPROFILE\.cargo\bin"
           npm run tauri build
 
       - name: Upload Windows artifacts
@@ -82,7 +93,6 @@ jobs:
           path: |
             src-tauri/target/release/bundle/msi/*.msi
             src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/*.exe
 
       - name: Upload Linux artifacts
         if: matrix.platform == 'ubuntu-22.04'

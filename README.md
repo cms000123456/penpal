@@ -22,12 +22,12 @@ A lightweight, cross-platform drawing app designed for the **XPPen Artist 15.6 P
 
 ## Screenshots
 
-| Web Version | Windows Desktop |
-|:--:|:--:|
-| ![Web Version](screenshots/web.png) | ![Windows Version](screenshots/windows_version.png) |
-| Browser-based drawing | Native Windows app with full features |
+| Web Version | Windows Desktop | XP-Pen Tablet Theme |
+|:--:|:--:|:--:|
+| ![Web Version](screenshots/web.png) | ![Windows Version](screenshots/windows_version.png) | ![Tablet Theme](screenshots/theme.png) |
+| Browser-based drawing | Native Windows app with full features | Tablet mockup UI with hardware keys & dial |
 
-*Left: Web version for quick testing. Right: Native Windows desktop app with multi-monitor support and advanced tools.*
+*Left: Web version for quick testing. Middle: Native Windows desktop app with multi-monitor support and advanced tools. Right: XP-Pen tablet theme with mockup bezel, shortcut keys, and red accent dial.*
 
 ## Requirements
 

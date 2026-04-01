@@ -8,6 +8,30 @@
 </head>
 <body>
   <div id="app">
+    <!-- Tablet Left Bezel (Mockup Keys) -->
+    <div id="tablet-left-bezel">
+      <div class="xppen-logo">
+        <span class="xp">XP</span><span class="pen">-PEN</span>
+      </div>
+      <div class="tablet-keys">
+        <div class="tablet-key" data-key="0" title="">K1</div>
+        <div class="tablet-key" data-key="1" title="">K2</div>
+        <div class="tablet-key" data-key="2" title="">K3</div>
+        <div class="tablet-key" data-key="3" title="">K4</div>
+      </div>
+      <div class="tablet-dial" title="Dial (scroll to adjust brush size)">
+        <div class="dial-ring"></div>
+        <div class="dial-indicator"></div>
+      </div>
+      <div class="tablet-keys">
+        <div class="tablet-key" data-key="4" title="">K5</div>
+        <div class="tablet-key" data-key="5" title="">K6</div>
+        <div class="tablet-key" data-key="6" title="">K7</div>
+        <div class="tablet-key" data-key="7" title="">K8</div>
+      </div>
+    </div>
+
+    <div id="tablet-body">
     <!-- Toolbar -->
     <div id="toolbar">
       <div class="tool-section">
@@ -117,6 +141,10 @@
       </div>
       
       <div class="tool-section">
+        <button id="themeBtn" title="Toggle Tablet Theme">🎨 Theme</button>
+      </div>
+      
+      <div class="tool-section">
         <button id="helpBtn" title="Help & Documentation">❓ Help</button>
       </div>
     </div>
@@ -141,6 +169,7 @@
           <input type="range" id="layerOpacity" min="0" max="100" value="100">
         </div>
       </div>
+    </div>
     </div>
     
     <!-- Custom Brush Modal -->

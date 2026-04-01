@@ -1245,3 +1245,569 @@ kbd {
     width: 200px;
   }
 }
+
+/* =========================================
+   XP-Pen Tablet Mockup Theme Overrides
+   ========================================= */
+
+/* App becomes the tablet frame */
+#app.tablet-theme{
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: #0a0a0a;
+}
+
+/* Left bezel with keys and dial */
+#app.tablet-theme #tablet-left-bezel{
+  width: 76px;
+  background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+  border-right: 1px solid #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 0 14px;
+  flex-shrink: 0;
+  box-shadow: inset -6px 0 10px rgba(0,0,0,0.5);
+  gap: 10px;
+  z-index: 50;
+}
+
+#app.tablet-theme .xppen-logo{
+  font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+#app.tablet-theme .xppen-logo .xp{ color: #E60012; display: block; }
+#app.tablet-theme .xppen-logo .pen{ color: #e0e0e0; display: block; }
+
+#app.tablet-theme .tablet-keys{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  align-items: center;
+}
+
+#app.tablet-theme .tablet-key{
+  width: 48px;
+  height: 38px;
+  background: linear-gradient(180deg, #262626 0%, #1c1c1c 100%);
+  border: 1px solid #333;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+#app.tablet-theme .tablet-key:hover{
+  background: linear-gradient(180deg, #303030 0%, #252525 100%);
+  border-color: #444;
+  color: #ccc;
+}
+#app.tablet-theme .tablet-key:active{
+  background: #E60012;
+  border-color: #ff1a2d;
+  color: #fff;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.35);
+  transform: translateY(1px);
+}
+
+#app.tablet-theme .tablet-dial{
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #1f1f1f 0%, #121212 100%);
+  border: 2px solid #2f2f2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  margin-bottom: 6px;
+  position: relative;
+}
+#app.tablet-theme .dial-ring{
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid #E60012;
+  opacity: 0.9;
+}
+#app.tablet-theme .dial-indicator{
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  background: #E60012;
+  top: 7px;
+  border-radius: 2px;
+}
+
+/* Main body wrapper */
+#app.tablet-theme #tablet-body{
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: #080808;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Fullscreen behavior: hide decorative bezel to maximize canvas */
+#app.tablet-theme:fullscreen #tablet-left-bezel{
+  display: none;
+}
+
+#app.tablet-theme:fullscreen #tablet-body{
+  border-radius: 0;
+}
+
+/* Toolbar styled as top control strip */
+#app.tablet-theme #toolbar{
+  background: #111111;
+  border-bottom: 1px solid #222;
+  min-height: 64px;
+  padding: 8px 14px;
+  gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+#app.tablet-theme .tool-section{
+  gap: 6px;
+}
+
+#app.tablet-theme .tool-section label{
+  color: #777;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+}
+
+#app.tablet-theme .tool-section input[type="color"]{
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 1px;
+}
+
+.tool-section button,
+#customBrushBtn,
+#helpBtn,
+#shortcutsBtn,
+.monitor-section select,
+#toolSelect,
+#blendMode,
+#app.tablet-theme #eraserMode{
+  background: #181818;
+  border: 1px solid #2a2a2a;
+  color: #ccc;
+  border-radius: 5px;
+  font-size: 11px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  transition: all 0.15s;
+}
+
+.tool-section button:hover,
+#customBrushBtn:hover,
+#helpBtn:hover,
+#shortcutsBtn:hover,
+.monitor-section select:hover,
+#toolSelect:hover,
+#blendMode:hover,
+#app.tablet-theme #eraserMode:hover{
+  background: #222;
+  border-color: #383838;
+  color: #fff;
+}
+
+#app.tablet-theme #customBrushBtn{
+  background: #1a0a0a;
+  color: #E60012;
+  border-color: #E60012;
+  font-weight: 700;
+}
+#app.tablet-theme #customBrushBtn:hover{
+  background: #E60012;
+  color: #fff;
+}
+
+#app.tablet-theme #helpBtn{
+  background: #0a1a1a;
+  color: #4fc3f7;
+  border-color: #4fc3f7;
+}
+#app.tablet-theme #helpBtn:hover{
+  background: #4fc3f7;
+  color: #000;
+}
+
+#app.tablet-theme #shortcutsBtn{
+  background: #181818;
+  color: #ddd;
+}
+
+#app.tablet-theme #pressureIndicator{
+  color: #4CAF50;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Range sliders theming */
+#app.tablet-theme input[type=range]{
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+}
+#app.tablet-theme input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: #E60012;
+  cursor: pointer;
+  margin-top: -5px;
+  border: 2px solid #111;
+}
+#app.tablet-theme input[type=range]::-webkit-slider-runnable-track{
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  background: #333;
+  border-radius: 2px;
+}
+#app.tablet-theme input[type=range]:focus{
+  outline: none;
+}
+
+/* Canvas as the tablet screen */
+#app.tablet-theme #canvas-container{
+  background: #050505;
+  border-top: 2px solid #1a1a1a;
+}
+
+#app.tablet-theme #drawingCanvas{
+  box-shadow: 0 0 0 1px #1f1f1f, 0 0 40px rgba(0,0,0,0.7);
+  z-index: 1;
+}
+
+/* Modals */
+#app.tablet-theme .modal-content{
+  background: #141414;
+  border: 1px solid #262626;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+}
+
+#app.tablet-theme .modal-header{
+  border-bottom: 1px solid #222;
+}
+
+#app.tablet-theme .modal-header h2{
+  color: #f0f0f0;
+  font-weight: 600;
+}
+
+#app.tablet-theme .shortcuts-info{
+  background: #0f0f0f;
+}
+
+#app.tablet-theme .shortcut-item{
+  background: #0f0f0f;
+  border: 1px solid #1a1a1a;
+}
+#app.tablet-theme .shortcut-item:hover{
+  border-color: #333;
+}
+#app.tablet-theme .shortcut-item.listening{
+  background: #1a0a0a;
+  border-color: #E60012;
+}
+
+#app.tablet-theme .key-label{
+  background: #1f1f1f;
+  color: #ddd;
+  border: 1px solid #2a2a2a;
+}
+
+.action-select,
+.control-group input[type="text"],
+#app.tablet-theme .control-group select{
+  background: #1a1a1a;
+  border-color: #2a2a2a;
+  color: #e0e0e0;
+}
+
+#app.tablet-theme .key-binding{
+  background: #151515;
+  border-color: #2a2a2a;
+  color: #777;
+}
+#app.tablet-theme .key-binding:hover{
+  background: #1f1f1f;
+  border-color: #444;
+  color: #ccc;
+}
+#app.tablet-theme .key-binding.bound{
+  background: #1a0a0a;
+  border-color: #E60012;
+  color: #E60012;
+}
+
+#app.tablet-theme .shortcuts-actions button{
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+}
+#app.tablet-theme .shortcuts-actions button:hover{
+  background: #242424;
+}
+
+#app.tablet-theme .shortcuts-presets{
+  background: #0f0f0f;
+}
+
+#app.tablet-theme .preset-item{
+  background: #1a1a1a;
+  color: #bbb;
+}
+
+#app.tablet-theme kbd{
+  background: #2a2a2a;
+  color: #eee;
+}
+
+#app.tablet-theme .btn-primary{
+  background: #E60012;
+  font-weight: 600;
+}
+#app.tablet-theme .btn-primary:hover{
+  background: #ff1a2d;
+}
+
+#app.tablet-theme .btn-secondary{
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+}
+#app.tablet-theme .btn-secondary:hover{
+  background: #242424;
+}
+
+#app.tablet-theme .btn-danger{
+  background: #b71c1c;
+}
+#app.tablet-theme .btn-danger:hover{
+  background: #c62828;
+}
+
+#app.tablet-theme .texture-btn{
+  background: #1a1a1a;
+  border-color: #2a2a2a;
+  color: #bbb;
+}
+.texture-btn:hover,
+#app.tablet-theme .texture-btn.active{
+  background: #E60012;
+  border-color: #E60012;
+  color: #fff;
+}
+
+#app.tablet-theme .brush-item{
+  background: #0f0f0f;
+  border-color: #1f1f1f;
+}
+#app.tablet-theme .brush-item:hover{
+  background: #161616;
+  border-color: #333;
+}
+#app.tablet-theme .brush-item.active{
+  background: #1a0a0a;
+  border-color: #E60012;
+}
+
+/* Help */
+#app.tablet-theme .help-modal-content{
+  background: #141414;
+}
+
+#app.tablet-theme .help-sidebar{
+  background: #0c0c0c;
+  border-right-color: #222;
+}
+
+#app.tablet-theme .help-search input{
+  background: #1a1a1a;
+  border-color: #2a2a2a;
+  color: #e0e0e0;
+}
+
+#app.tablet-theme .help-link:hover{
+  background: #1a1a1a;
+  color: #fff;
+}
+#app.tablet-theme .help-link.active{
+  background: #E60012;
+  border-left-color: #ff4d5f;
+  color: #fff;
+}
+
+#app.tablet-theme .help-content{
+  background: #101010;
+}
+
+#app.tablet-theme .help-section h3{
+  border-bottom-color: #E60012;
+  color: #f5f5f5;
+}
+
+#app.tablet-theme .help-section h4{
+  color: #ff6b7a;
+}
+
+#app.tablet-theme .help-tip{
+  background: #0f1f0f;
+  border-left-color: #4CAF50;
+  color: #b2dfdb;
+}
+
+#app.tablet-theme .help-tool-item{
+  background: #141414;
+  border-color: #222;
+}
+
+#app.tablet-theme .help-tool-item strong{
+  color: #ff6b7a;
+}
+
+#app.tablet-theme .help-table td{
+  border-bottom-color: #222;
+  color: #bbb;
+}
+#app.tablet-theme .help-table td:first-child{
+  color: #ff6b7a;
+}
+#app.tablet-theme .help-table tr:hover td{
+  background: #1a1a1a;
+}
+
+#app.tablet-theme .help-tip-item{
+  background: #141414;
+  border-left-color: #fbc02d;
+}
+
+#app.tablet-theme .help-footer{
+  border-top-color: #222;
+  color: #555;
+}
+
+#app.tablet-theme .highlight{
+  background: #E60012;
+  color: #fff;
+}
+
+/* Layers */
+#app.tablet-theme #layersPanel{
+  background: rgba(16, 16, 16, 0.96);
+  border-color: #262626;
+}
+
+#app.tablet-theme .layers-header{
+  border-bottom-color: #222;
+}
+
+#app.tablet-theme .layers-header span{
+  color: #ddd;
+}
+
+#app.tablet-theme .layers-actions button{
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+}
+#app.tablet-theme .layers-actions button:hover{
+  background: #242424;
+}
+
+#app.tablet-theme .layer-item{
+  background: #0c0c0c;
+  border: 2px solid transparent;
+}
+#app.tablet-theme .layer-item:hover{
+  background: #141414;
+  border-color: #2a2a2a;
+}
+#app.tablet-theme .layer-item.active{
+  background: #1a0a0a;
+  border-color: #E60012;
+}
+#app.tablet-theme .layer-item.drag-over{
+  border-color: #4fc3f7;
+}
+
+#app.tablet-theme .layer-visibility{
+  color: #888;
+}
+#app.tablet-theme .layer-visibility:hover{
+  color: #fff;
+}
+
+#app.tablet-theme .layer-name{
+  color: #e0e0e0;
+}
+#app.tablet-theme .layer-name:hover{
+  background: #222;
+}
+
+#app.tablet-theme .layer-opacity-section{
+  border-top-color: #222;
+}
+#app.tablet-theme .layer-opacity-section label{
+  color: #888;
+}
+
+/* Fullscreen tweaks */
+#app.tablet-theme:fullscreen #toolbar{
+  background: rgba(10,10,10,0.92);
+  border-bottom: 1px solid rgba(40,40,40,0.6);
+}
+
+#app.tablet-theme:fullscreen #layersPanel{
+  background: rgba(10,10,10,0.9);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  #app.tablet-theme #toolbar {
+    flex-wrap: wrap;
+    min-height: auto;
+  }
+  #app.tablet-theme .monitor-section {
+    border-left: none;
+    padding-left: 0;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  #app.tablet-theme #tablet-left-bezel {
+    display: none;
+  }
+}
+
+/* Non-tablet theme: hide bezel and restore original layout */
+#app:not(.tablet-theme) {
+  flex-direction: column;
+}
+#app:not(.tablet-theme) #tablet-left-bezel {
+  display: none;
+}
+#app:not(.tablet-theme) #tablet-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}

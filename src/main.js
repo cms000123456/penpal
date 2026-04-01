@@ -442,6 +442,16 @@ class ShortcutManager {
     
     // Initialize UI
     this.updateUI();
+    
+    // Setup mock tablet keys on the left bezel
+    document.querySelectorAll('.tablet-key').forEach((keyBtn) => {
+      keyBtn.addEventListener('click', () => {
+        const index = parseInt(keyBtn.dataset.key, 10);
+        if (index >= 0 && index < this.shortcuts.length) {
+          this.executeAction(this.shortcuts[index].action);
+        }
+      });
+    });
   }
   
   openModal() {
@@ -476,6 +486,15 @@ class ShortcutManager {
         bindingSpan.textContent = this.isAutoDetecting ? 'Press key...' : 'Press key...';
       } else {
         item.classList.remove('listening');
+      }
+    });
+    
+    // Update mock tablet key titles
+    document.querySelectorAll('.tablet-key').forEach((keyBtn) => {
+      const index = parseInt(keyBtn.dataset.key, 10);
+      if (index >= 0 && index < this.shortcuts.length) {
+        const action = this.shortcuts[index].action;
+        keyBtn.title = `K${index + 1}: ${action.replace(/_/g, ' ')}`;
       }
     });
   }
@@ -1605,6 +1624,7 @@ class DrawingApp {
     this.setupCanvas();
     this.setupEventListeners();
     this.setupToolbar();
+    this.setupTheme();
     this.loadMonitors();
     
     // Initialize layer manager after canvas setup
@@ -1632,6 +1652,12 @@ class DrawingApp {
     const container = document.getElementById('canvas-container');
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
+    
+    // If container hasn't been laid out yet, defer resize
+    if (containerWidth === 0 || containerHeight === 0) {
+      requestAnimationFrame(() => this.resizeCanvas());
+      return;
+    }
     
     // Save current canvas content if this is first resize
     if (this.canvas.width > 0 && this.canvas.height > 0 && !this.layerManager) {
@@ -1662,8 +1688,8 @@ class DrawingApp {
   
   // Render all visible layers to the main canvas
   renderAllLayers() {
-    // Clear main canvas
-    this.ctx.fillStyle = '#1a1a1a';
+    // Clear main canvas to the intended background color
+    this.ctx.fillStyle = this.backgroundColor;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
     if (!this.layerManager) return;
@@ -2029,6 +2055,27 @@ class DrawingApp {
         const newSize = Math.min(100, this.brushSize + 5);
         this.setBrushSize(newSize);
       }
+    });
+  }
+  
+  setupTheme() {
+    const app = document.getElementById('app');
+    const themeBtn = document.getElementById('themeBtn');
+    
+    // Load saved preference
+    const useTabletTheme = localStorage.getItem('penpal-tablet-theme') !== 'false';
+    if (useTabletTheme) {
+      app.classList.add('tablet-theme');
+    } else {
+      app.classList.remove('tablet-theme');
+    }
+    
+    themeBtn.addEventListener('click', () => {
+      const isActive = app.classList.toggle('tablet-theme');
+      localStorage.setItem('penpal-tablet-theme', isActive ? 'true' : 'false');
+      this.showNotification(isActive ? 'Tablet theme on' : 'Tablet theme off');
+      // Trigger a resize so canvas adapts to new layout
+      requestAnimationFrame(() => this.resizeCanvas());
     });
   }
   
